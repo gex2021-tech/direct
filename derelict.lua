@@ -827,23 +827,24 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Direct UI update (same pattern as X button)
-    local b = t.Binds[kbBindIdx]
-    if b and b.Key then
-        kbKeyBtn.Text = b.Key; kbKeyBtn.TextColor3 = C.text
-    else
-        kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = C.dim
-    end
-    local mode = (b and b.Mode) or "Toggle"
-    local isTog = mode ~= "Hold"
-    kbModeT.BackgroundColor3 = isTog and C.accent or C.bg
-    kbModeT.TextColor3 = isTog and C.text or C.dim
-    kbModeTStroke.Color = isTog and C.accent or C.border
-    kbModeH.BackgroundColor3 = (not isTog) and C.orange or C.bg
-    kbModeH.TextColor3 = (not isTog) and C.text or C.dim
-    kbModeHStroke.Color = (not isTog) and C.orange or C.border
+    -- Force UI update directly (same as X button pattern)
+    kbKeyBtn.Text = "-"
+    kbKeyBtn.TextColor3 = C.dim
+    kbModeT.BackgroundColor3 = C.accent
+    kbModeT.TextColor3 = C.text
+    kbModeTStroke.Color = C.accent
+    kbModeH.BackgroundColor3 = C.bg
+    kbModeH.TextColor3 = C.dim
+    kbModeHStroke.Color = C.border
     UpdateBindLabel(kbCurrent)
-    if KbRebuildChips then KbRebuildChips() end
+    -- Update the chip text directly without rebuilding
+    for _, chip in ipairs(kbChips:GetChildren()) do
+        if chip:IsA("TextButton") and chip.LayoutOrder == kbBindIdx then
+            chip.Text = "-:T"
+            chip.TextColor3 = C.text
+            chip.BackgroundColor3 = C.accent
+        end
+    end
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
