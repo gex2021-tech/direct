@@ -51,99 +51,7 @@ function Derelict:DisconnectAll()
     self.ActiveConnections = {}
 end
 
-function Derelict:DisconnectAll()
-    for _, conn in ipairs(self.ActiveConnections) do
-        if typeof(conn) == "RBXScriptConnection" then
-            pcall(function() conn:Disconnect() end)
-        end
-    end
-    self.ActiveConnections = {}
-end
-
--- ───────────────────────────────────────────────────────────
--- NOTIFY SYSTEM (Toast Notifications)
--- ───────────────────────────────────────────────────────────
-local NotifyContainer = nil
-local function Notify(title, msg, nType)
-    if not NotifyContainer then
-        NotifyContainer = New("Frame", {
-            Position = UDim2.new(1, -10, 1, -10),
-            Size = UDim2.new(0, 280, 0, 0),
-            BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-        }, SGui)
-        New("UIListLayout", {
-            FillDirection = Enum.FillDirection.Vertical,
-            HorizontalAlignment = Enum.HorizontalAlignment.Right,
-            VerticalAlignment = Enum.VerticalAlignment.Bottom,
-            Padding = UDim.new(0, 4),
-            SortOrder = Enum.SortOrder.LayoutOrder,
-        }, NotifyContainer)
-    end
-
-    local color = C.accent
-    if nType == "Success" then color = C.green
-    elseif nType == "Error" then color = C.red
-    elseif nType == "Warning" then color = C.orange end
-
-    local toast = New("Frame", {
-        Size = UDim2.new(0, 280, 0, 50),
-        BackgroundColor3 = C.panel,
-        BorderSizePixel = 0,
-        LayoutOrder = #NotifyContainer:GetChildren(),
-    }, NotifyContainer)
-    Corner(toast, 4)
-    Stroke(toast, color, 1)
-
-    New("TextLabel", {
-        Position = UDim2.new(0, 8, 0, 4),
-        Size = UDim2.new(1, -16, 0, 14),
-        Text = title,
-        TextColor3 = color,
-        BackgroundTransparency = 1,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold,
-        TextSize = 10,
-    }, toast)
-
-    New("TextLabel", {
-        Position = UDim2.new(0, 8, 0, 18),
-        Size = UDim2.new(1, -16, 0, 28),
-        Text = msg or "",
-        TextColor3 = C.text,
-        BackgroundTransparency = 1,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true,
-        Font = Enum.Font.Gotham,
-        TextSize = 9,
-    }, toast)
-
-    table.insert(Derelict.Notifications, toast)
-
-    -- Animate in
-    toast.Position = UDim2.new(1, 10, 1, -10)
-    pcall(function()
-        TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -290, 0, 0),
-        }):Play()
-    end)
-
-    -- Auto-dismiss after 4s
-    spawn(function()
-        wait(4)
-        pcall(function()
-            TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                Position = UDim2.new(1, 10, 0, 0),
-            }):Play()
-        end)
-        wait(0.3)
-        toast:Destroy()
-    end)
-end
-
-local Connections = {}
-local function track(c) table.insert(Connections, c); Derelict:Connect(c); return c end
+local function track(c) Derelict:Connect(c); return c end
 
 -- ───────────────────────────────────────────────────────────
 -- HELPERS
@@ -258,7 +166,7 @@ Toggles.Fly_Mode.valueOption    = { key="Fly_Speed",    label="Fly Speed",    mi
 -- SCREEN GUI + MAIN WINDOW + TITLE BAR + NAVBAR
 -- ═══════════════════════════════════════════════════════════
 local SGui = New("ScreenGui", {
-    Name="DerelictUI", ResetOnSpawn=false, DisplayOrder=0x7FFFFFFF,
+    Name="DerelictUI", ResetOnSpawn=false, DisplayOrder=2147483647,
     ZIndexBehavior=Enum.ZIndexBehavior.Sibling, IgnoreGuiInset=true,
 }, PlayerGui)
 do  -- Move to CoreGui so the ScreenGui renders above the Drawing API layer
@@ -1186,24 +1094,26 @@ local actScroll = New("ScrollingFrame", {
     AutomaticCanvasSize=Enum.AutomaticSize.Y,
 }, actOuter)
 local actEntries = {}
-local function RebuildActivity()
-    for _, c in ipairs(actScroll:GetChildren()) do
-        if c:IsA("TextLabel") then c:Destroy() end
-    end
-    for i, e in ipairs(actEntries) do
-        New("TextLabel", {
-            Position=UDim2.new(0,0,0,(i-1)*11), Size=UDim2.new(1,0,0,11),
-            Text=e.text, TextColor3=e.color, BackgroundTransparency=1,
-            TextXAlignment=Enum.TextXAlignment.Left,
-            Font=Enum.Font.Gotham, TextSize=8,
-            TextTruncate=Enum.TextTruncate.AtEnd,
-        }, actScroll)
-    end
-end
+local actLabels = {}
 local function AddActivity(text, color)
     table.insert(actEntries, 1, { text=text, color=color or C.dim })
-    if #actEntries > 80 then table.remove(actEntries) end
-    RebuildActivity()
+    if #actEntries > 80 then
+        table.remove(actEntries)
+        local last = actLabels[#actLabels]
+        if last then last:Destroy() end
+        table.remove(actLabels)
+    end
+    local lbl = New("TextLabel", {
+        Position=UDim2.new(0,0,0,0), Size=UDim2.new(1,0,0,11),
+        Text=text, TextColor3=color or C.dim, BackgroundTransparency=1,
+        TextXAlignment=Enum.TextXAlignment.Left,
+        Font=Enum.Font.Gotham, TextSize=8,
+        TextTruncate=Enum.TextTruncate.AtEnd,
+    }, actScroll)
+    table.insert(actLabels, 1, lbl)
+    for i, l in ipairs(actLabels) do
+        l.Position = UDim2.new(0,0,0,(i-1)*11)
+    end
 end
 
 -- ── Center bottom: Player List (real) ──────────────────────
@@ -1234,16 +1144,16 @@ local plScroll = New("ScrollingFrame", {
     AutomaticCanvasSize=Enum.AutomaticSize.Y,
 }, plOuter)
 
+local plRows = {}
 local function UpdatePlayerList()
-    for _,c in ipairs(plScroll:GetChildren()) do
-        if c:IsA("Frame") then c:Destroy() end
-    end
     local lc = LocalPlayer.Character
     local lr = lc and lc:FindFirstChild("HumanoidRootPart")
+    local seen = {}
     local idx = 0
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
             idx = idx + 1
+            seen[p] = true
             local ch  = p.Character
             local hum = ch and ch:FindFirstChildOfClass("Humanoid")
             local rt  = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -1254,25 +1164,50 @@ local function UpdatePlayerList()
             if pct then
                 if pct<25 then hpC=C.red elseif pct<60 then hpC=C.orange end
             end
-            local row = New("Frame", {
-                Position=UDim2.new(0,0,0,(idx-1)*14), Size=UDim2.new(1,0,0,14),
-                BackgroundColor3=idx%2==0 and C.row_alt or C.panel,
-                BorderSizePixel=0,
-            }, plScroll)
-            local vals,cols = {p.Name,dist,hp}, {C.text,C.dim,hpC}
-            for j,v in ipairs(vals) do
-                New("TextLabel", {
-                    Position=UDim2.new(0,(j-1)*96,0,0), Size=UDim2.new(0,96,1,0),
-                    Text=v, TextColor3=cols[j], BackgroundTransparency=1,
+            local row = plRows[p]
+            if not row then
+                row = New("Frame", {
+                    Position=UDim2.new(0,0,0,0), Size=UDim2.new(1,0,0,14),
+                    BackgroundColor3=idx%2==0 and C.row_alt or C.panel,
+                    BorderSizePixel=0,
+                }, plScroll)
+                local nameLbl = New("TextLabel", {
+                    Position=UDim2.new(0,0,0,0), Size=UDim2.new(0,96,1,0),
+                    Text=p.Name, TextColor3=C.text, BackgroundTransparency=1,
                     TextXAlignment=Enum.TextXAlignment.Center,
                     Font=Enum.Font.Gotham, TextSize=8,
                     TextTruncate=Enum.TextTruncate.AtEnd,
                 }, row)
+                local distLbl = New("TextLabel", {
+                    Position=UDim2.new(0,96,0,0), Size=UDim2.new(0,96,1,0),
+                    TextColor3=C.dim, BackgroundTransparency=1,
+                    TextXAlignment=Enum.TextXAlignment.Center,
+                    Font=Enum.Font.Gotham, TextSize=8,
+                }, row)
+                local hpLbl = New("TextLabel", {
+                    Position=UDim2.new(0,192,0,0), Size=UDim2.new(0,96,1,0),
+                    TextColor3=hpC, BackgroundTransparency=1,
+                    TextXAlignment=Enum.TextXAlignment.Center,
+                    Font=Enum.Font.Gotham, TextSize=8,
+                }, row)
+                for _,x in ipairs({96,192}) do
+                    New("Frame", { Position=UDim2.new(0,x,0,0), Size=UDim2.new(0,1,1,0),
+                        BackgroundColor3=C.border, BorderSizePixel=0 }, row)
+                end
+                plRows[p] = { row=row, name=nameLbl, dist=distLbl, hp=hpLbl }
             end
-            for _,x in ipairs({96,192}) do
-                New("Frame", { Position=UDim2.new(0,x,0,0), Size=UDim2.new(0,1,1,0),
-                    BackgroundColor3=C.border, BorderSizePixel=0 }, row)
-            end
+            local r = plRows[p]
+            r.row.Position = UDim2.new(0,0,0,(idx-1)*14)
+            r.row.BackgroundColor3 = idx%2==0 and C.row_alt or C.panel
+            r.dist.Text = dist
+            r.hp.Text = hp
+            r.hp.TextColor3 = hpC
+        end
+    end
+    for p, r in pairs(plRows) do
+        if not seen[p] then
+            r.row:Destroy()
+            plRows[p] = nil
         end
     end
 end
@@ -1607,13 +1542,13 @@ local function worldToScreen(pos)
 end
 local function createESP(target, espType)
     local e = { target=target, type=espType, drawings={} }
-    e.drawings.name = createDrawingObj("Text", { Size=13, Center=true, Outline=true, OutlineColor=Color3.new(0,0,0), Font=2, Visible=false })
+    e.drawings.name = createDrawingObj("Text", { Size=13, Center=true, Outline=true, OutlineColor=Color3.new(0,0,0), Font=Drawing.Fonts.UI, Visible=false })
     e.drawings.box = createDrawingObj("Square", { Thickness=1, Filled=false, Visible=false, Transparency=1 })
     e.drawings.boxOutline = createDrawingObj("Square", { Thickness=3, Color=Color3.new(0,0,0), Filled=false, Visible=false, Transparency=0.5 })
     e.drawings.tracer = createDrawingObj("Line", { Thickness=1, Visible=false, Transparency=0.8 })
     e.drawings.healthBar = createDrawingObj("Square", { Thickness=1, Color=Color3.fromRGB(0,255,0), Filled=true, Visible=false })
     e.drawings.healthBarBg = createDrawingObj("Square", { Thickness=1, Color=Color3.fromRGB(20,20,20), Filled=true, Visible=false })
-    e.drawings.distance = createDrawingObj("Text", { Size=11, Center=true, Outline=true, OutlineColor=Color3.new(0,0,0), Color=Color3.fromRGB(200,200,200), Font=2, Visible=false })
+    e.drawings.distance = createDrawingObj("Text", { Size=11, Center=true, Outline=true, OutlineColor=Color3.new(0,0,0), Color=Color3.fromRGB(200,200,200), Font=Drawing.Fonts.UI, Visible=false })
     return e
 end
 local function destroyESP(e) for _,d in pairs(e.drawings) do pcall(function() d:Remove() end) end end
@@ -1748,7 +1683,7 @@ local function updateESP(e)
     else e.drawings.distance.Visible = false end
 end
 
--- ── Scanner loop ───────────────────────────────────────────
+-- ── Scanner loop ──
 local function checkESP(obj)
     if not SGui.Parent then return end
     if obj:IsA("Model") and not espObjects[obj] and isEnemy(obj) then
@@ -1759,12 +1694,15 @@ local function checkESP(obj)
     end
 end
 
--- Escaneo Pasivo Optimizado
+-- Initial scan: only top-level Models (fast), DescendantAdded catches nested items
 spawn(function()
-    for _, obj in ipairs(workspace:GetDescendants()) do checkESP(obj) end
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Model") then checkESP(obj) end
+    end
 end)
 track(workspace.DescendantAdded:Connect(checkESP))
 
+-- Periodic: cleanup dead ESPs + register new players
 spawn(function()
     while SGui.Parent do
         for tgt, e in pairs(espObjects) do
@@ -1939,9 +1877,6 @@ end
 SGui.AncestryChanged:Connect(function()
     if not SGui.Parent then
         Derelict:DisconnectAll()
-        for _, c in ipairs(Connections) do
-            if typeof(c) == "RBXScriptConnection" then pcall(function() c:Disconnect() end) end
-        end
         for _, e in pairs(espObjects) do destroyESP(e) end
         espObjects = {}
     end
