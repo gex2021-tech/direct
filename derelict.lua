@@ -1743,16 +1743,18 @@ local function StartInfJump()
     local r = getRoot()
     if not r then return end
     infJumpBV = Instance.new("BodyVelocity")
-    infJumpBV.MaxForce = Vector3.new(0, 1e5, 0)
+    infJumpBV.MaxForce = Vector3.new(0, math.huge, 0)
     infJumpBV.Velocity = Vector3.zero
     infJumpBV.Parent = r
     infJumpConn = RunService.Heartbeat:Connect(function()
         if not Toggles.Infinite_Jump.Value then return end
         local h = getHum()
         local r2 = getRoot()
-        if not h or not r2 or not infJumpBV then return end
-        if h.FloorMaterial == Enum.Material.Air and UserInput:IsKeyDown(Enum.KeyCode.Space) then
-            infJumpBV.Velocity = Vector3.new(0, 50, 0)
+        if not h or not r2 then return end
+        local state = h:GetState()
+        local inAir = state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Jumping
+        if inAir and UserInput:IsKeyDown(Enum.KeyCode.Space) then
+            infJumpBV.Velocity = Vector3.new(0, 300, 0)
         else
             infJumpBV.Velocity = Vector3.zero
         end
