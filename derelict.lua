@@ -170,6 +170,8 @@ local SGui = New("ScreenGui", {
     ZIndexBehavior=Enum.ZIndexBehavior.Sibling, IgnoreGuiInset=true,
 }, PlayerGui)
 do  -- Move to CoreGui so the ScreenGui renders above the Drawing API layer
+    pcall(function() syn.protect_gui(SGui) end)
+    pcall(function() protect_gui(SGui) end)
     local ok = pcall(function() SGui.Parent = game:GetService("CoreGui") end)
     if not ok then
         local hui = pcall(gethui) and gethui()
@@ -1487,6 +1489,7 @@ end
 
 -- ═══════════════════════════════════════════════════════════
 -- BACKEND: SPOOFER HOOKS (Infinite Stamina)
+-- ═══════════════════════════════════════════════════════════
 do
     local ok, mt = pcall(getrawmetatable, game)
     if ok and mt then
@@ -1494,12 +1497,13 @@ do
         local oldIndex    = mt.__index
         pcall(setreadonly, mt, false)
 
-        local isOurCode = isexecutorclosure or function() return false end
+        -- Use closure() as fallback if newcclosure is not available in Potassium
+        local closureFunc = newcclosure or closure or function(f) return f end
 
-        mt.__namecall = newcclosure(function(self, ...)
+        mt.__namecall = closureFunc(function(self, ...)
             local method = getnamecallmethod()
             local args   = {...}
-            if Toggles.Infinite_Stamina.Value and not isOurCode() then
+            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
                 if method == "GetAttribute" and type(args[1]) == "string" then
                     local a = string.lower(args[1])
                     if a == "stamina" or a == "energy" then return 1000 end
@@ -1508,8 +1512,8 @@ do
             return oldNamecall(self, ...)
         end)
 
-        mt.__index = newcclosure(function(t, k)
-            if Toggles.Infinite_Stamina.Value and not isOurCode() then
+        mt.__index = closureFunc(function(t, k)
+            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
                 if tostring(k) == "Value" and typeof(t) == "Instance" then
                     local n = string.lower(t.Name)
                     if n == "stamina" or n == "energy" then return 1000 end
@@ -1729,31 +1733,37 @@ local function getHum() local c = LocalPlayer.Character; return c and c:FindFirs
 local function getRoot() local c = LocalPlayer.Character; return c and c:FindFirstChild("HumanoidRootPart") end
 
 -- Infinite Jump
-local jumpConn = nil
-local function EnableJump()
-    if not jumpConn then
-        jumpConn = UserInput.JumpRequest:Connect(function()
-            if Toggles.Infinite_Jump.Value then
-                local h = getHum()
-                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-            end
-        end)
-        track(jumpConn)
-    end
+local infJumpBV, infJumpConn
+local function StopInfJump()
+    if infJumpBV then infJumpBV:Destroy(); infJumpBV = nil end
+    if infJumpConn then infJumpConn:Disconnect(); infJumpConn = nil end
 end
-local function DisableJump()
-    if jumpConn then
-        jumpConn:Disconnect()
-        jumpConn = nil
-    end
+local function StartInfJump()
+    StopInfJump()
+    local r = getRoot()
+    if not r then return end
+    infJumpBV = Instance.new("BodyVelocity")
+    infJumpBV.MaxForce = Vector3.new(0, 1e5, 0)
+    infJumpBV.Velocity = Vector3.zero
+    infJumpBV.Parent = r
+    infJumpConn = RunService.Heartbeat:Connect(function()
+        if not Toggles.Infinite_Jump.Value then return end
+        local h = getHum()
+        local r2 = getRoot()
+        if not h or not r2 or not infJumpBV then return end
+        if h.FloorMaterial == Enum.Material.Air and UserInput:IsKeyDown(Enum.KeyCode.Space) then
+            infJumpBV.Velocity = Vector3.new(0, 50, 0)
+        else
+            infJumpBV.Velocity = Vector3.zero
+        end
+    end)
 end
-EnableJump() -- Start with connection active (lightweight)
 Toggles.Infinite_Jump:OnChanged(function(v)
     if v then
-        EnableJump()
+        StartInfJump()
         Notify("Infinite Jump", "Enabled", "Success")
     else
-        DisableJump()
+        StopInfJump()
         Notify("Infinite Jump", "Disabled", "Info")
     end
 end)
@@ -1820,6 +1830,13 @@ RefreshKeybindList()
 
 do  -- physics helpers + UI refresh
     local _t = 0
+    -- Rebuild Infinite Jump on character respawn
+    track(LocalPlayer.CharacterAdded:Connect(function()
+        if Toggles.Infinite_Jump.Value then
+            wait(0.5)
+            StartInfJump()
+        end
+    end))
     -- NoClip part cache: rebuilt on character respawn, kept in sync via DescendantAdded
     local noclipConn = nil
     local noclipParts, noclipChar, noclipChildConn = {}, nil, nil
