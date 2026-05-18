@@ -818,6 +818,12 @@ local kbResetBtn = New("TextButton",{
     TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
 HoverFx(kbResetBtn, C.red)
+local function ForceKeyBtnUpdate(text, color)
+    kbKeyBtn.Text = text
+    kbKeyBtn.TextColor3 = color
+    kbKeyBtn.Parent = nil
+    kbKeyBtn.Parent = kbKeyBtnFrame
+end
 kbResetBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
@@ -827,6 +833,9 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
+    ForceKeyBtnUpdate("-", C.dim)
+    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
     UpdateBindLabel(kbCurrent)
     KbRefresh()
 end)
