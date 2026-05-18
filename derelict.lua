@@ -956,11 +956,14 @@ kbHotBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
--- Reset: clear ALL binds for the current toggle
+-- Reset: clear ONLY the selected bind entry
 kbResetBtn.MouseButton1Click:Connect(function()
     if not kbCurrent or not Toggles[kbCurrent] then return end
-    Toggles[kbCurrent].Binds = {}
-    kbBindIdx = 1
+    local t = Toggles[kbCurrent]
+    if t.Binds[kbBindIdx] then
+        table.remove(t.Binds, kbBindIdx)
+        kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
+    end
     if bindingFor==kbCurrent then bindingFor=nil end
     KbRefresh(); UpdateAllBinds()
 end)
@@ -1205,9 +1208,108 @@ New("TextLabel", {
     BackgroundTransparency=1, TextXAlignment=Enum.TextXAlignment.Left,
     Font=Enum.Font.Gotham, TextSize=9,
 }, pmsc)
-SmallBtn(pmsc, 8, 46, 80, 18, "Reset Binds", function()
-    for _, t in pairs(Toggles) do t.Binds = {} end
-    UpdateAllBinds()
+SmallBtn(pmsc, 8, 46, 80, 18, "Save Config", function()
+    local configName = "default"
+    local config = {
+        Toggles = {},
+        Options = {},
+        Binds = {},
+    }
+    for name, t in pairs(Toggles) do
+        config.Toggles[name] = t.Value
+        config.Binds[name] = {}
+        for _, b in ipairs(t.Binds) do
+            table.insert(config.Binds[name], { Key=b.Key, Mode=b.Mode })
+        end
+    end
+    for name, o in pairs(Options) do
+        local v = o.Value
+        if typeof(v) == "Color3" then
+            config.Options[name] = { R=v.R, G=v.G, B=v.B }
+        else
+            config.Options[name] = v
+        end
+    end
+    local serialized = "-- Derelict Config\nreturn " .. tostring(config):gsub("table: 0x%x+", "")
+    -- Use a simple Lua table format
+    local lines = {"return {"}
+    -- Toggles
+    table.insert(lines, "  Toggles = {")
+    for name, val in pairs(config.Toggles) do
+        table.insert(lines, string.format('    ["%s"] = %s,', name, tostring(val)))
+    end
+    table.insert(lines, "  },")
+    -- Options
+    table.insert(lines, "  Options = {")
+    for name, val in pairs(config.Options) do
+        if typeof(val) == "table" and val.R then
+            table.insert(lines, string.format('    ["%s"] = Color3.new(%s, %s, %s),', name, val.R, val.G, val.B))
+        else
+            table.insert(lines, string.format('    ["%s"] = %s,', name, tostring(val)))
+        end
+    end
+    table.insert(lines, "  },")
+    -- Binds
+    table.insert(lines, "  Binds = {")
+    for name, binds in pairs(config.Binds) do
+        if #binds > 0 then
+            table.insert(lines, string.format('    ["%s"] = {', name))
+            for _, b in ipairs(binds) do
+                table.insert(lines, string.format('      { Key="%s", Mode="%s" },', b.Key or "", b.Mode or "Toggle"))
+            end
+            table.insert(lines, "    },")
+        end
+    end
+    table.insert(lines, "  },")
+    table.insert(lines, "}")
+    local content = table.concat(lines, "\n")
+    pcall(function()
+        makefolder("Derelict/configs")
+        writefile("Derelict/configs/" .. configName .. ".lua", content)
+        Notify("Config", "Saved: " .. configName, "Success")
+    end)
+end)
+SmallBtn(pmsc, 96, 46, 80, 18, "Load Config", function()
+    pcall(function()
+        if isfile("Derelict/configs/default.lua") then
+            local chunk = loadfile("Derelict/configs/default.lua")
+            if chunk then
+                local cfg = chunk()
+                if cfg and cfg.Toggles then
+                    for name, val in pairs(cfg.Toggles) do
+                        if Toggles[name] then Toggles[name]:Set(val) end
+                    end
+                end
+                if cfg and cfg.Options then
+                    for name, val in pairs(cfg.Options) do
+                        if Options[name] then
+                            if typeof(val) == "table" and val.R then
+                                Options[name]:Set(Color3.new(val.R, val.G, val.B))
+                            else
+                                Options[name]:Set(val)
+                            end
+                        end
+                    end
+                end
+                if cfg and cfg.Binds then
+                    for name, binds in pairs(cfg.Binds) do
+                        if Toggles[name] then
+                            Toggles[name].Binds = {}
+                            for _, b in ipairs(binds) do
+                                if b.Key and b.Key ~= "" then
+                                    table.insert(Toggles[name].Binds, { Key=b.Key, Mode=b.Mode or "Toggle" })
+                                end
+                            end
+                        end
+                    end
+                    UpdateAllBinds()
+                end
+                Notify("Config", "Loaded: default", "Success")
+            end
+        else
+            Notify("Config", "No config found", "Error")
+        end
+    end)
 end)
 
 Section(pmsc, 76, "About")
