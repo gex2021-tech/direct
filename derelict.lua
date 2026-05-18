@@ -816,29 +816,6 @@ end)
 New("Frame",{Position=UDim2.new(0,10,0,101),Size=UDim2.new(1,-20,0,1),
     BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbLeftClip)
 
--- Row 3: Clear All (replaces Reset)
-local kbClearBtn = New("TextButton",{
-    Position=UDim2.new(0,0,0,102),Size=UDim2.new(1,0,0,48),
-    Text="",BackgroundColor3=Hex("151515"),
-    BorderSizePixel=0,AutoButtonColor=false,Active=true,ZIndex=101},kbLeftClip)
-New("TextLabel",{Position=UDim2.new(0,12,0,0),Size=UDim2.new(1,-20,0,20),
-    Text=" Clear All",TextColor3=C.red,BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.Gotham,TextSize=11},kbClearBtn)
-HoverFx(kbClearBtn, Hex("2a1515"))
-kbClearBtn.MouseButton1Click:Connect(function()
-    _popupIgnoreNextClose = true
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    Toggles[kbCurrent].Binds = {}
-    kbBindIdx = 1
-    bindingFor = nil
-    kbKeyBtn.Text = "-"
-    kbKeyBtn.TextColor3 = C.dim
-    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = Color3.new(1,1,1); kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = Hex("252525"); kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = Hex("2d2d2d")
-    UpdateBindLabel(kbCurrent)
-    KbRefresh()
-end)
-
 -- ── RIGHT pane ──
 local kbRight = New("Frame",{Position=UDim2.new(0,122,0,0),Size=UDim2.new(1,-122,1,0),
     BackgroundTransparency=1},kbInner)
