@@ -822,20 +822,16 @@ kbResetBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
-    -- Create new array to force UI update (Roblox detects array reference change)
-    local newBinds = {}
-    for i, b in ipairs(t.Binds) do
-        if i == kbBindIdx then
-            table.insert(newBinds, { Key=nil, Mode="Toggle" })
-        else
-            table.insert(newBinds, b)
-        end
+    if t.Binds[kbBindIdx] then
+        t.Binds[kbBindIdx].Key = nil
+        t.Binds[kbBindIdx].Mode = "Toggle"
     end
-    t.Binds = newBinds
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Direct UI update
+    -- Force visual update by toggling visibility
+    kbKeyBtn.Visible = false
     kbKeyBtn.Text = "-"
     kbKeyBtn.TextColor3 = C.dim
+    kbKeyBtn.Visible = true
     kbModeT.BackgroundColor3 = C.accent
     kbModeT.TextColor3 = C.text
     kbModeTStroke.Color = C.accent
