@@ -702,18 +702,21 @@ local Always = New("Frame", {
     Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
 }, Content)
 
--- ── CONTEXT KEYBIND POPUP ─ aesthetic match to reference image ─
+-- ═══════════════════════════════════════════════════════════
+-- KEYBIND POPUP
+-- ═══════════════════════════════════════════════════════════
 local kbPanel = New("Frame", {
-    Position=UDim2.new(0,0,0,0), Size=UDim2.new(0,310,0,150),
-    BackgroundColor3=Hex("1a1a1a"), BorderSizePixel=0,
+    Position=UDim2.new(0,0,0,0), Size=UDim2.new(0,320,0,160),
+    BackgroundColor3=Hex("141414"), BorderSizePixel=0,
     Visible=false, ZIndex=100,
 }, SGui)
-Corner(kbPanel, 6)
-Stroke(kbPanel, Hex("2d2d2d"), 1)
--- Popup state
+Corner(kbPanel, 8)
+Stroke(kbPanel, Hex("2a2a2a"), 1)
+
 local kbCurrent  = nil
 local kbBindIdx  = 1
 local KbRebuildChips
+
 local function ClosePopup()
     if bindingFor then local n=bindingFor; bindingFor=nil; UpdateBindLabel(n) end
     if kbCurrent and Toggles[kbCurrent] then
@@ -725,6 +728,7 @@ local function ClosePopup()
     end
     kbPanel.Visible = false
 end
+
 local _popupIgnoreNextClose = false
 local kbInner = New("Frame", {
     Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, BorderSizePixel=0, Active=true,
@@ -748,36 +752,42 @@ track(UserInput.InputEnded:Connect(function(i)
     end
 end))
 
--- Vertical divider
-New("Frame",{Position=UDim2.new(0,120,0,0),Size=UDim2.new(0,1,1,0),
-    BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbInner)
-
--- ── LEFT pane ──
-local kbLeft = New("Frame",{Position=UDim2.new(0,0,0,0),Size=UDim2.new(0,120,1,0),
-    BackgroundColor3=Hex("151515"),BorderSizePixel=0},kbInner)
-Corner(kbLeft, 6)
--- Clip left pane to rounded corners
-local kbLeftClip = New("Frame",{Position=UDim2.new(0,0,0,0),Size=UDim2.new(1,0,1,0),
-    BackgroundTransparency=1,ClipsDescendants=true},kbLeft)
-Corner(kbLeftClip, 6)
+-- ── LEFT: menu ──
+local kbLeft = New("Frame",{
+    Position=UDim2.new(0,0,0,0), Size=UDim2.new(0,120,1,0),
+    BackgroundColor3=Hex("111111"), BorderSizePixel=0,
+}, kbInner)
+Corner(kbLeft, 8)
+local kbLeftClip = New("Frame",{
+    Position=UDim2.new(0,0,0,0), Size=UDim2.new(1,0,1,0),
+    BackgroundTransparency=1, ClipsDescendants=true,
+}, kbLeft)
+Corner(kbLeftClip, 8)
 
 local function HoverFx(btn, hoverColor)
     btn.MouseEnter:Connect(function() btn.BackgroundColor3 = hoverColor end)
-    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Hex("151515") end)
+    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Hex("111111") end)
 end
 
--- Row 1: New Bind
+-- + New Bind
 local kbNewBtn = New("TextButton",{
-    Position=UDim2.new(0,0,0,0),Size=UDim2.new(1,0,0,50),
-    Text="",BackgroundColor3=Hex("151515"),
-    BorderSizePixel=0,AutoButtonColor=false,Active=true,ZIndex=101},kbLeftClip)
-New("TextLabel",{Position=UDim2.new(0,12,0,0),Size=UDim2.new(1,-30,0,20),
-    Text="+ New Bind",TextColor3=C.accent,BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,TextSize=11},kbNewBtn)
-New("TextLabel",{Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,16,1,0),
-    Text="›",TextColor3=C.accent,BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Center,Font=Enum.Font.GothamBold,TextSize=14},kbNewBtn)
-HoverFx(kbNewBtn, Hex("1e1e2e"))
+    Position=UDim2.new(0,0,0,0), Size=UDim2.new(1,0,0,53),
+    Text="", BackgroundColor3=Hex("111111"),
+    BorderSizePixel=0, AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbLeftClip)
+New("TextLabel",{
+    Position=UDim2.new(0,14,0,0), Size=UDim2.new(1,-36,0,22),
+    Text="+ New Bind", TextColor3=C.accent, BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    Font=Enum.Font.GothamBold, TextSize=11,
+}, kbNewBtn)
+New("TextLabel",{
+    Position=UDim2.new(1,-22,0,0), Size=UDim2.new(0,18,1,0),
+    Text="›", TextColor3=C.accent, BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Center,
+    Font=Enum.Font.GothamBold, TextSize=14,
+}, kbNewBtn)
+HoverFx(kbNewBtn, Hex("1a1a2e"))
 kbNewBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
@@ -788,22 +798,28 @@ kbNewBtn.MouseButton1Click:Connect(function()
     kbKeyBtn.Text = "Press key..."
     kbKeyBtn.TextColor3 = C.orange
     kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = Color3.new(1,1,1); kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = Hex("252525"); kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = Hex("2d2d2d")
+    kbModeH.BackgroundColor3 = Hex("222222"); kbModeH.TextColor3 = Hex("777777"); kbModeHStroke.Color = Hex("2a2a2a")
     UpdateBindLabel(kbCurrent)
     if KbRebuildChips then KbRebuildChips() end
 end)
-New("Frame",{Position=UDim2.new(0,10,0,50),Size=UDim2.new(1,-20,0,1),
-    BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbLeftClip)
+New("Frame",{
+    Position=UDim2.new(0,12,0,53), Size=UDim2.new(1,-24,0,1),
+    BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
+}, kbLeftClip)
 
--- Row 2: Hotkeys
+-- Hotkeys
 local kbHotBtn = New("TextButton",{
-    Position=UDim2.new(0,0,0,51),Size=UDim2.new(1,0,0,50),
-    Text="",BackgroundColor3=Hex("151515"),
-    BorderSizePixel=0,AutoButtonColor=false,Active=true,ZIndex=101},kbLeftClip)
-New("TextLabel",{Position=UDim2.new(0,12,0,0),Size=UDim2.new(1,-20,0,20),
-    Text=" Hotkeys",TextColor3=C.text,BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.Gotham,TextSize=11},kbHotBtn)
-HoverFx(kbHotBtn, Hex("1e1e2e"))
+    Position=UDim2.new(0,0,0,54), Size=UDim2.new(1,0,0,53),
+    Text="", BackgroundColor3=Hex("111111"),
+    BorderSizePixel=0, AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbLeftClip)
+New("TextLabel",{
+    Position=UDim2.new(0,14,0,0), Size=UDim2.new(1,-20,0,22),
+    Text="Hotkeys", TextColor3=Hex("cccccc"), BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    Font=Enum.Font.Gotham, TextSize=11,
+}, kbHotBtn)
+HoverFx(kbHotBtn, Hex("1a1a1a"))
 kbHotBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     print("[Derelict] active hotkeys:")
@@ -813,90 +829,134 @@ kbHotBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
-New("Frame",{Position=UDim2.new(0,10,0,101),Size=UDim2.new(1,-20,0,1),
-    BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbLeftClip)
+New("Frame",{
+    Position=UDim2.new(0,12,0,107), Size=UDim2.new(1,-24,0,1),
+    BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
+}, kbLeftClip)
 
--- ── RIGHT pane ──
-local kbRight = New("Frame",{Position=UDim2.new(0,122,0,0),Size=UDim2.new(1,-122,1,0),
-    BackgroundTransparency=1},kbInner)
+-- Vertical divider
+New("Frame",{
+    Position=UDim2.new(0,120,0,0), Size=UDim2.new(0,1,1,0),
+    BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
+}, kbInner)
 
--- Key row
-New("TextLabel",{Position=UDim2.new(0,8,0,10),Size=UDim2.new(0,24,0,14),
-    Text="Key",TextColor3=Hex("888888"),BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,TextSize=9},kbRight)
+-- ── RIGHT: config ──
+local kbRight = New("Frame",{
+    Position=UDim2.new(0,122,0,0), Size=UDim2.new(1,-122,1,0),
+    BackgroundTransparency=1,
+}, kbInner)
+
+-- Key
+New("TextLabel",{
+    Position=UDim2.new(0,10,0,10), Size=UDim2.new(0,24,0,14),
+    Text="Key", TextColor3=Hex("888888"), BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    Font=Enum.Font.GothamBold, TextSize=9,
+}, kbRight)
 local kbKeyBtnFrame = New("Frame",{
-    Position=UDim2.new(0,34,0,8),Size=UDim2.new(1,-42,0,20),
-    BackgroundColor3=Hex("252525"),BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
-Corner(kbKeyBtnFrame, 4)
-Stroke(kbKeyBtnFrame, Hex("333333"), 1)
+    Position=UDim2.new(0,36,0,8), Size=UDim2.new(1,-46,0,22),
+    BackgroundColor3=Hex("1e1e1e"), BorderSizePixel=0, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbKeyBtnFrame, 5)
+Stroke(kbKeyBtnFrame, Hex("2e2e2e"), 1)
 local kbKeyBtn = New("TextLabel",{
     Size=UDim2.new(1,0,1,0),
-    Text="-",TextColor3=C.dim,BackgroundTransparency=1,
-    Font=Enum.Font.GothamBold,TextSize=10,
+    Text="-", TextColor3=Hex("777777"), BackgroundTransparency=1,
+    Font=Enum.Font.GothamBold, TextSize=10,
     TextXAlignment=Enum.TextXAlignment.Center,
-},kbKeyBtnFrame)
+}, kbKeyBtnFrame)
 
--- Mode row
-New("TextLabel",{Position=UDim2.new(0,8,0,34),Size=UDim2.new(0,32,0,14),
-    Text="Mode",TextColor3=Hex("888888"),BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,TextSize=9},kbRight)
+-- Mode
+New("TextLabel",{
+    Position=UDim2.new(0,10,0,36), Size=UDim2.new(0,32,0,14),
+    Text="Mode", TextColor3=Hex("888888"), BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    Font=Enum.Font.GothamBold, TextSize=9,
+}, kbRight)
 local kbModeT = New("TextButton",{
-    Position=UDim2.new(0,42,0,32),Size=UDim2.new(0,50,0,20),
-    Text="Toggle",TextColor3=Color3.new(1,1,1),BackgroundColor3=C.accent,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbModeT, 4)
+    Position=UDim2.new(0,44,0,34), Size=UDim2.new(0,54,0,22),
+    Text="Toggle", TextColor3=Color3.new(1,1,1), BackgroundColor3=C.accent,
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbModeT, 5)
 local kbModeTStroke = Stroke(kbModeT, C.accent, 1)
 local kbModeH = New("TextButton",{
-    Position=UDim2.new(0,96,0,32),Size=UDim2.new(0,50,0,20),
-    Text="Hold",TextColor3=C.dim,BackgroundColor3=Hex("252525"),
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbModeH, 4)
-local kbModeHStroke = Stroke(kbModeH, Hex("2d2d2d"), 1)
+    Position=UDim2.new(0,102,0,34), Size=UDim2.new(0,54,0,22),
+    Text="Hold", TextColor3=Hex("777777"), BackgroundColor3=Hex("222222"),
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbModeH, 5)
+local kbModeHStroke = Stroke(kbModeH, Hex("2a2a2a"), 1)
 
 -- Separator
-New("Frame",{Position=UDim2.new(0,6,0,58),Size=UDim2.new(1,-12,0,1),
-    BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbRight)
+New("Frame",{
+    Position=UDim2.new(0,8,0,62), Size=UDim2.new(1,-16,0,1),
+    BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
+}, kbRight)
 
--- Binds label + chip strip
-New("TextLabel",{Position=UDim2.new(0,8,0,64),Size=UDim2.new(0,36,0,14),
-    Text="Binds",TextColor3=Hex("888888"),BackgroundTransparency=1,
-    TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,TextSize=9},kbRight)
+-- Binds
+New("TextLabel",{
+    Position=UDim2.new(0,10,0,68), Size=UDim2.new(0,36,0,14),
+    Text="Binds", TextColor3=Hex("888888"), BackgroundTransparency=1,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    Font=Enum.Font.GothamBold, TextSize=9,
+}, kbRight)
 local kbChips = New("ScrollingFrame",{
-    Position=UDim2.new(0,6,0,80),Size=UDim2.new(1,-12,0,24),
-    BackgroundTransparency=1,BorderSizePixel=0,ScrollingDirection=Enum.ScrollingDirection.X,
-    ScrollBarThickness=0,ScrollBarImageColor3=C.border,
-    CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.X},kbRight)
+    Position=UDim2.new(0,8,0,84), Size=UDim2.new(1,-16,0,26),
+    BackgroundTransparency=1, BorderSizePixel=0,
+    ScrollingDirection=Enum.ScrollingDirection.X,
+    ScrollBarThickness=0,
+    CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.X,
+}, kbRight)
 local kbChipsLayout = New("UIListLayout",{
-    FillDirection=Enum.FillDirection.Horizontal,Padding=UDim.new(0,4),
-    SortOrder=Enum.SortOrder.LayoutOrder,VerticalAlignment=Enum.VerticalAlignment.Center},kbChips)
+    FillDirection=Enum.FillDirection.Horizontal, Padding=UDim.new(0,4),
+    SortOrder=Enum.SortOrder.LayoutOrder,
+    VerticalAlignment=Enum.VerticalAlignment.Center,
+}, kbChips)
 
 -- Separator
-New("Frame",{Position=UDim2.new(0,6,0,108),Size=UDim2.new(1,-12,0,1),
-    BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbRight)
+New("Frame",{
+    Position=UDim2.new(0,8,0,116), Size=UDim2.new(1,-16,0,1),
+    BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
+}, kbRight)
 
--- Footer: Del | Eye | Hide | Menu
-local kbDelBtn = New("TextButton",{Position=UDim2.new(0,6,0,114),Size=UDim2.new(0,32,0,24),
-    Text="Del",TextColor3=C.red,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbDelBtn, 4)
-Stroke(kbDelBtn, Hex("333333"), 1)
-local kbEyeBtn = New("TextButton",{Position=UDim2.new(0,42,0,114),Size=UDim2.new(0,32,0,24),
-    Text="Eye",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbEyeBtn, 4)
-Stroke(kbEyeBtn, Hex("333333"), 1)
-local kbHideBtn = New("TextButton",{Position=UDim2.new(0,78,0,114),Size=UDim2.new(0,40,0,24),
-    Text="Hide",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbHideBtn, 4)
-Stroke(kbHideBtn, Hex("333333"), 1)
-local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-30,0,114),Size=UDim2.new(0,24,0,24),
-    Text="",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=12,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbMenuBtn, 4)
-Stroke(kbMenuBtn, Hex("333333"), 1)
+-- Footer
+local kbDelBtn = New("TextButton",{
+    Position=UDim2.new(0,8,0,122), Size=UDim2.new(0,34,0,26),
+    Text="Del", TextColor3=C.red, BackgroundColor3=Hex("1e1e1e"),
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbDelBtn, 5)
+Stroke(kbDelBtn, Hex("2e2e2e"), 1)
+local kbEyeBtn = New("TextButton",{
+    Position=UDim2.new(0,46,0,122), Size=UDim2.new(0,34,0,26),
+    Text="Eye", TextColor3=Hex("777777"), BackgroundColor3=Hex("1e1e1e"),
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbEyeBtn, 5)
+Stroke(kbEyeBtn, Hex("2e2e2e"), 1)
+local kbHideBtn = New("TextButton",{
+    Position=UDim2.new(0,84,0,122), Size=UDim2.new(0,42,0,26),
+    Text="Hide", TextColor3=Hex("777777"), BackgroundColor3=Hex("1e1e1e"),
+    BorderSizePixel=0, Font=Enum.Font.Gotham, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbHideBtn, 5)
+Stroke(kbHideBtn, Hex("2e2e2e"), 1)
+local kbMenuBtn = New("TextButton",{
+    Position=UDim2.new(1,-32,0,122), Size=UDim2.new(0,26,0,26),
+    Text=":", TextColor3=Hex("777777"), BackgroundColor3=Hex("1e1e1e"),
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=14,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbMenuBtn, 5)
+Stroke(kbMenuBtn, Hex("2e2e2e"), 1)
 
--- Click handlers
+-- ─ Handlers ──
 kbDelBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
@@ -908,24 +968,24 @@ kbDelBtn.MouseButton1Click:Connect(function()
     if bindingFor==kbCurrent then bindingFor=nil end
     if #t.Binds == 0 then
         kbKeyBtn.Text = "-"
-        kbKeyBtn.TextColor3 = C.dim
+        kbKeyBtn.TextColor3 = Hex("777777")
         kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = Color3.new(1,1,1); kbModeTStroke.Color = C.accent
-        kbModeH.BackgroundColor3 = Hex("252525"); kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = Hex("2d2d2d")
+        kbModeH.BackgroundColor3 = Hex("222222"); kbModeH.TextColor3 = Hex("777777"); kbModeHStroke.Color = Hex("2a2a2a")
     else
         local b = t.Binds[kbBindIdx]
         if b and b.Key then
             kbKeyBtn.Text = b.Key; kbKeyBtn.TextColor3 = Color3.new(1,1,1)
         else
-            kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = C.dim
+            kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = Hex("777777")
         end
         local mode = (b and b.Mode) or "Toggle"
         local isTog = mode ~= "Hold"
-        kbModeT.BackgroundColor3 = isTog and C.accent or Hex("252525")
-        kbModeT.TextColor3 = isTog and Color3.new(1,1,1) or C.dim
-        kbModeTStroke.Color = isTog and C.accent or Hex("2d2d2d")
-        kbModeH.BackgroundColor3 = (not isTog) and C.orange or Hex("252525")
-        kbModeH.TextColor3 = (not isTog) and Color3.new(1,1,1) or C.dim
-        kbModeHStroke.Color = (not isTog) and C.orange or Hex("2d2d2d")
+        kbModeT.BackgroundColor3 = isTog and C.accent or Hex("222222")
+        kbModeT.TextColor3 = isTog and Color3.new(1,1,1) or Hex("777777")
+        kbModeTStroke.Color = isTog and C.accent or Hex("2a2a2a")
+        kbModeH.BackgroundColor3 = (not isTog) and C.orange or Hex("222222")
+        kbModeH.TextColor3 = (not isTog) and Color3.new(1,1,1) or Hex("777777")
+        kbModeHStroke.Color = (not isTog) and C.orange or Hex("2a2a2a")
     end
     UpdateBindLabel(kbCurrent)
     if KbRebuildChips then KbRebuildChips() end
@@ -949,12 +1009,12 @@ kbMenuBtn.MouseButton1Click:Connect(function()
     KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
 end)
 
--- ── (state hoisted above ClosePopup) ──
+-- ── Refresh ──
 local function KbRefresh()
     if not kbCurrent or not Toggles[kbCurrent] then
-        kbKeyBtn.Text="-"; kbKeyBtn.TextColor3=C.dim
+        kbKeyBtn.Text="-"; kbKeyBtn.TextColor3=Hex("777777")
         kbModeT.BackgroundColor3=C.accent; kbModeT.TextColor3=Color3.new(1,1,1); kbModeTStroke.Color=C.accent
-        kbModeH.BackgroundColor3=Hex("252525"); kbModeH.TextColor3=C.dim; kbModeHStroke.Color=Hex("2d2d2d")
+        kbModeH.BackgroundColor3=Hex("222222"); kbModeH.TextColor3=Hex("777777"); kbModeHStroke.Color=Hex("2a2a2a")
         if KbRebuildChips then KbRebuildChips() end
         return
     end
@@ -965,20 +1025,20 @@ local function KbRefresh()
     elseif b and b.Key then
         kbKeyBtn.Text=b.Key; kbKeyBtn.TextColor3=Color3.new(1,1,1)
     else
-        kbKeyBtn.Text="-"; kbKeyBtn.TextColor3=C.dim
+        kbKeyBtn.Text="-"; kbKeyBtn.TextColor3=Hex("777777")
     end
     local mode = (b and b.Mode) or "Toggle"
     local isTog = mode ~= "Hold"
-    kbModeT.BackgroundColor3 = isTog and C.accent or Hex("252525")
-    kbModeT.TextColor3       = isTog and Color3.new(1,1,1) or C.dim
-    kbModeTStroke.Color      = isTog and C.accent or Hex("2d2d2d")
-    kbModeH.BackgroundColor3 = (not isTog) and C.orange or Hex("252525")
-    kbModeH.TextColor3       = (not isTog) and Color3.new(1,1,1) or C.dim
-    kbModeHStroke.Color      = (not isTog) and C.orange or Hex("2d2d2d")
+    kbModeT.BackgroundColor3 = isTog and C.accent or Hex("222222")
+    kbModeT.TextColor3       = isTog and Color3.new(1,1,1) or Hex("777777")
+    kbModeTStroke.Color      = isTog and C.accent or Hex("2a2a2a")
+    kbModeH.BackgroundColor3 = (not isTog) and C.orange or Hex("222222")
+    kbModeH.TextColor3       = (not isTog) and Color3.new(1,1,1) or Hex("777777")
+    kbModeHStroke.Color      = (not isTog) and C.orange or Hex("2a2a2a")
     if KbRebuildChips then KbRebuildChips() end
 end
 
--- Build the bind chip strip
+-- ── Chips ──
 KbRebuildChips = function()
     for _, c in ipairs(kbChips:GetChildren()) do
         if c:IsA("TextButton") or c:IsA("Frame") then c:Destroy() end
@@ -988,14 +1048,15 @@ KbRebuildChips = function()
     for i, b in ipairs(t.Binds) do
         local sel = (i == kbBindIdx)
         local chip = New("TextButton",{
-            Size=UDim2.new(0,52,0,22),LayoutOrder=i,
+            Size=UDim2.new(0,54,0,24), LayoutOrder=i,
             Text=(b.Key or "-")..","..((b.Mode=="Hold") and "H" or "T"),
-            TextColor3=sel and Color3.new(1,1,1) or C.dim,
-            BackgroundColor3=sel and C.accent or Hex("252525"),
-            BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-            AutoButtonColor=false},kbChips)
-        Corner(chip, 4)
-        Stroke(chip, sel and C.accent or Hex("2d2d2d"), 1)
+            TextColor3=sel and Color3.new(1,1,1) or Hex("777777"),
+            BackgroundColor3=sel and C.accent or Hex("1e1e1e"),
+            BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+            AutoButtonColor=false,
+        }, kbChips)
+        Corner(chip, 5)
+        Stroke(chip, sel and C.accent or Hex("2e2e2e"), 1)
         local idx = i
         chip.MouseButton1Click:Connect(function()
             _popupIgnoreNextClose = true
@@ -1005,27 +1066,28 @@ KbRebuildChips = function()
             if b2 and b2.Key then
                 kbKeyBtn.Text = b2.Key; kbKeyBtn.TextColor3 = Color3.new(1,1,1)
             else
-                kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = C.dim
+                kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = Hex("777777")
             end
             local mode2 = (b2 and b2.Mode) or "Toggle"
             local isTog2 = mode2 ~= "Hold"
-            kbModeT.BackgroundColor3 = isTog2 and C.accent or Hex("252525")
-            kbModeT.TextColor3 = isTog2 and Color3.new(1,1,1) or C.dim
-            kbModeTStroke.Color = isTog2 and C.accent or Hex("2d2d2d")
-            kbModeH.BackgroundColor3 = (not isTog2) and C.orange or Hex("252525")
-            kbModeH.TextColor3 = (not isTog2) and Color3.new(1,1,1) or C.dim
-            kbModeHStroke.Color = (not isTog2) and C.orange or Hex("2d2d2d")
+            kbModeT.BackgroundColor3 = isTog2 and C.accent or Hex("222222")
+            kbModeT.TextColor3 = isTog2 and Color3.new(1,1,1) or Hex("777777")
+            kbModeTStroke.Color = isTog2 and C.accent or Hex("2a2a2a")
+            kbModeH.BackgroundColor3 = (not isTog2) and C.orange or Hex("222222")
+            kbModeH.TextColor3 = (not isTog2) and Color3.new(1,1,1) or Hex("777777")
+            kbModeHStroke.Color = (not isTog2) and C.orange or Hex("2a2a2a")
             KbRebuildChips()
         end)
     end
     -- trailing "+" chip
     local addChip = New("TextButton",{
-        Size=UDim2.new(0,24,0,22),LayoutOrder=#t.Binds+1,
-        Text="+",TextColor3=C.accent,BackgroundColor3=Hex("252525"),
-        BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,
-        AutoButtonColor=false},kbChips)
-    Corner(addChip, 4)
-    Stroke(addChip, Hex("2d2d2d"), 1)
+        Size=UDim2.new(0,24,0,24), LayoutOrder=#t.Binds+1,
+        Text="+", TextColor3=C.accent, BackgroundColor3=Hex("1e1e1e"),
+        BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=12,
+        AutoButtonColor=false,
+    }, kbChips)
+    Corner(addChip, 5)
+    Stroke(addChip, Hex("2e2e2e"), 1)
     addChip.MouseButton1Click:Connect(function()
         _popupIgnoreNextClose = true
         table.insert(t.Binds, { Key=nil, Mode="Toggle" })
@@ -1034,13 +1096,13 @@ KbRebuildChips = function()
         kbKeyBtn.Text = "Press key..."
         kbKeyBtn.TextColor3 = C.orange
         kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = Color3.new(1,1,1); kbModeTStroke.Color = C.accent
-        kbModeH.BackgroundColor3 = Hex("252525"); kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = Hex("2d2d2d")
+        kbModeH.BackgroundColor3 = Hex("222222"); kbModeH.TextColor3 = Hex("777777"); kbModeHStroke.Color = Hex("2a2a2a")
         UpdateBindLabel(kbCurrent)
         KbRebuildChips()
     end)
 end
 
--- ── Event handlers ──
+-- ── Key input ──
 kbKeyBtnFrame.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 then
         _popupIgnoreNextClose = true
@@ -1055,6 +1117,8 @@ kbKeyBtnFrame.InputBegan:Connect(function(i)
         UpdateBindLabel(kbCurrent)
     end
 end)
+
+-- ── Mode buttons ──
 kbModeT.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
@@ -1062,7 +1126,7 @@ kbModeT.MouseButton1Click:Connect(function()
     if not b or not b.Key then return end
     b.Mode="Toggle"
     kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = Color3.new(1,1,1); kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = Hex("252525"); kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = Hex("2d2d2d")
+    kbModeH.BackgroundColor3 = Hex("222222"); kbModeH.TextColor3 = Hex("777777"); kbModeHStroke.Color = Hex("2a2a2a")
     UpdateBindLabel(kbCurrent)
 end)
 kbModeH.MouseButton1Click:Connect(function()
@@ -1071,12 +1135,12 @@ kbModeH.MouseButton1Click:Connect(function()
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
     if not b or not b.Key then return end
     b.Mode="Hold"
-    kbModeT.BackgroundColor3 = Hex("252525"); kbModeT.TextColor3 = C.dim; kbModeTStroke.Color = Hex("2d2d2d")
+    kbModeT.BackgroundColor3 = Hex("222222"); kbModeT.TextColor3 = Hex("777777"); kbModeTStroke.Color = Hex("2a2a2a")
     kbModeH.BackgroundColor3 = C.orange; kbModeH.TextColor3 = Color3.new(1,1,1); kbModeHStroke.Color = C.orange
     UpdateBindLabel(kbCurrent)
 end)
 
--- Open popup
+-- ─ Open popup ──
 OpenKeybindPopup = function(name)
     if not name or not Toggles[name] then return end
     kbCurrent = name
@@ -1085,7 +1149,7 @@ OpenKeybindPopup = function(name)
     KbRefresh()
     local mp=UserInput:GetMouseLocation()
     local vp=Camera.ViewportSize
-    local pw,ph=310,150
+    local pw,ph=320,160
     kbPanel.AnchorPoint=Vector2.new(0,0)
     kbPanel.Size    =UDim2.new(0,pw,0,ph)
     kbPanel.Position=UDim2.new(0,math.clamp(mp.X+6,0,vp.X-pw),
