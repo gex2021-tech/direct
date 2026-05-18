@@ -70,27 +70,29 @@ local function CreateToggle(name, default, displayLabel)
         Label = displayLabel or name, _l = {},
     }
     function t:Set(v)
-        if self.Value == v then return end
-        self.Value = v
+        if t.Value == v then return end
+        t.Value = v
         -- SYNCHRONOUS dispatch → instant visual update (no scheduler delay)
-        for _, fn in ipairs(self._l) do
+        for _, fn in ipairs(t._l) do
             local ok, err = pcall(fn, v)
             if not ok then warn("[Derelict] listener error: "..tostring(err)) end
         end
     end
-    function t:OnChanged(fn) table.insert(self._l, fn); return self end
+    function t:OnChanged(fn) table.insert(t._l, fn); return t end
     Toggles[name] = t
     return t
 end
 local function CreateOption(name, default)
     local o = { Value = default, _l = {} }
-    function o:Set(v) self.Value = v
-        for _, fn in ipairs(self._l) do
+    function o:Set(v) 
+        if o.Value == v then return end
+        o.Value = v
+        for _, fn in ipairs(o._l) do
             local ok, err = pcall(fn, v)
             if not ok then warn("[Derelict] option listener error: "..tostring(err)) end
         end
     end
-    function o:OnChanged(fn) table.insert(self._l, fn); return self end
+    function o:OnChanged(fn) table.insert(o._l, fn); return o end
     Options[name] = o
     return o
 end
@@ -110,7 +112,7 @@ CreateToggle("Show_Players",  true,  "Show Players")
 
 -- Main / character + movement
 CreateToggle("Infinite_Stamina", true,  "Infinite Stamina")
-CreateToggle("No_Fall_Damage",   false, "No Fall Damage")
+-- CreateToggle("No_Fall_Damage",   false, "No Fall Damage") -- Feature incompleta, removida temporalmente
 CreateToggle("No_Clip",          false, "No Clip")
 CreateToggle("Fly_Mode",         false, "Fly Mode")
 CreateToggle("Infinite_Jump",    false, "Infinite Jump")
@@ -937,7 +939,7 @@ local pMainCfg = Panel(pMain, 4, 4, 252, 540, "Configurations")
 local pmc = PanelContent(pMainCfg)
 Section(pmc, 4, "Character")
 Checkbox(pmc, 20, "Infinite_Stamina", C.orange)
-Checkbox(pmc, 38, "No_Fall_Damage")
+-- Checkbox(pmc, 38, "No_Fall_Damage") -- Removido: feature incompleta
 Section(pmc, 60, "Movement")
 Checkbox(pmc, 76, "No_Clip")
 Checkbox(pmc, 94, "Fly_Mode")
@@ -1048,8 +1050,11 @@ track(UserInput.InputBegan:Connect(function(input, processed)
     end
 
     -- 2) menu toggle (hard-coded RightShift)
+    if key == "RightShift" then 
+        Main.Visible = not Main.Visible
+        return 
+    end
     if processed then return end
-    if key == "RightShift" then Main.Visible = not Main.Visible; return end
 
     -- 3) bound toggles (multi-bind: iterate every bind entry)
     for _, t in pairs(Toggles) do
@@ -1104,10 +1109,13 @@ do
         local oldIndex    = mt.__index
         pcall(setreadonly, mt, false)
 
-        mt.__namecall = newcclosure(function(self, ...)
+        -- Use closure() as fallback if newcclosure is not available in Potassium
+        local closureFunc = newcclosure or closure or function(f) return f end
+
+        mt.__namecall = closureFunc(function(self, ...)
             local method = getnamecallmethod()
             local args   = {...}
-            if Toggles.Infinite_Stamina.Value and not checkcaller() then
+            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
                 if method == "GetAttribute" and type(args[1]) == "string" then
                     local a = string.lower(args[1])
                     if a == "stamina" or a == "energy" then return 1000 end
@@ -1116,8 +1124,8 @@ do
             return oldNamecall(self, ...)
         end)
 
-        mt.__index = newcclosure(function(t, k)
-            if Toggles.Infinite_Stamina.Value and not checkcaller() then
+        mt.__index = closureFunc(function(t, k)
+            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
                 if tostring(k) == "Value" and typeof(t) == "Instance" then
                     local n = string.lower(t.Name)
                     if n == "stamina" or n == "energy" then return 1000 end
@@ -1359,12 +1367,12 @@ local function StartFly()
         flyBG.CFrame = Camera.CFrame
         local move = Vector3.zero
         local cf = Camera.CFrame
-        if UserInput:IsKeyDown(Enum.KeyCode.W) then move += cf.LookVector end
-        if UserInput:IsKeyDown(Enum.KeyCode.S) then move -= cf.LookVector end
-        if UserInput:IsKeyDown(Enum.KeyCode.A) then move -= cf.RightVector end
-        if UserInput:IsKeyDown(Enum.KeyCode.D) then move += cf.RightVector end
-        if UserInput:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0,1,0) end
-        if UserInput:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.new(0,1,0) end
+        if UserInput:IsKeyDown(Enum.KeyCode.W) then move = move + cf.LookVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.S) then move = move - cf.LookVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.A) then move = move - cf.RightVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.D) then move = move + cf.RightVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+        if UserInput:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0,1,0) end
         flyBV.Velocity = move.Magnitude > 0 and move.Unit*Options.Fly_Speed.Value or Vector3.zero
     end)
 end
@@ -1424,8 +1432,6 @@ do  -- physics helpers + UI refresh
     end))
 
     track(RunService.Heartbeat:Connect(function(dt)
-        -- No Fall Damage temporalmente desactivado para evitar bugs de salto
-        
         -- Player list refresh (throttled to 2s)
         _t = _t + dt
         if _t >= 2 then _t=0; UpdatePlayerList() end
