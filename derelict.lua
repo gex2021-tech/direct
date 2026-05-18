@@ -780,7 +780,12 @@ kbNewBtn.MouseButton1Click:Connect(function()
     table.insert(t.Binds, { Key=nil, Mode="Toggle" })
     kbBindIdx = #t.Binds
     bindingFor = kbCurrent
-    KbRefresh(); UpdateBindLabel(kbCurrent)
+    kbKeyBtn.Text = "Press key..."
+    kbKeyBtn.TextColor3 = C.orange
+    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
+    UpdateBindLabel(kbCurrent)
+    if KbRebuildChips then KbRebuildChips() end
 end)
 New("Frame",{Position=UDim2.new(0,0,0,46),Size=UDim2.new(1,0,0,1),
     BackgroundColor3=C.border,BorderSizePixel=0},kbLeft)
@@ -822,10 +827,13 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Force immediate visual update
+    -- Immediate visual update
     kbKeyBtn.Text = "-"
     kbKeyBtn.TextColor3 = C.dim
-    KbRefresh(); UpdateAllBinds()
+    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
+    UpdateBindLabel(kbCurrent)
+    if KbRebuildChips then KbRebuildChips() end
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
@@ -899,7 +907,30 @@ kbDelBtn.MouseButton1Click:Connect(function()
         kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    KbRefresh(); UpdateAllBinds()
+    -- Immediate visual update
+    if #t.Binds == 0 then
+        kbKeyBtn.Text = "-"
+        kbKeyBtn.TextColor3 = C.dim
+        kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+        kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
+    else
+        local b = t.Binds[kbBindIdx]
+        if b and b.Key then
+            kbKeyBtn.Text = b.Key; kbKeyBtn.TextColor3 = C.text
+        else
+            kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = C.dim
+        end
+        local mode = (b and b.Mode) or "Toggle"
+        local isTog = mode ~= "Hold"
+        kbModeT.BackgroundColor3 = isTog and C.accent or C.bg
+        kbModeT.TextColor3 = isTog and C.text or C.dim
+        kbModeTStroke.Color = isTog and C.accent or C.border
+        kbModeH.BackgroundColor3 = (not isTog) and C.orange or C.bg
+        kbModeH.TextColor3 = (not isTog) and C.text or C.dim
+        kbModeHStroke.Color = (not isTog) and C.orange or C.border
+    end
+    UpdateBindLabel(kbCurrent)
+    if KbRebuildChips then KbRebuildChips() end
 end)
 kbHideEye.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
@@ -972,7 +1003,23 @@ KbRebuildChips = function()
         chip.MouseButton1Click:Connect(function()
             _popupIgnoreNextClose = true
             kbBindIdx = idx; if bindingFor then bindingFor=nil end
-            KbRefresh()
+            -- Immediate visual update
+            local t2 = Toggles[kbCurrent]
+            local b2 = t2.Binds[kbBindIdx]
+            if b2 and b2.Key then
+                kbKeyBtn.Text = b2.Key; kbKeyBtn.TextColor3 = C.text
+            else
+                kbKeyBtn.Text = "-"; kbKeyBtn.TextColor3 = C.dim
+            end
+            local mode2 = (b2 and b2.Mode) or "Toggle"
+            local isTog2 = mode2 ~= "Hold"
+            kbModeT.BackgroundColor3 = isTog2 and C.accent or C.bg
+            kbModeT.TextColor3 = isTog2 and C.text or C.dim
+            kbModeTStroke.Color = isTog2 and C.accent or C.border
+            kbModeH.BackgroundColor3 = (not isTog2) and C.orange or C.bg
+            kbModeH.TextColor3 = (not isTog2) and C.text or C.dim
+            kbModeHStroke.Color = (not isTog2) and C.orange or C.border
+            KbRebuildChips()
         end)
     end
     -- trailing "+" chip = add new bind
@@ -988,7 +1035,12 @@ KbRebuildChips = function()
         table.insert(t.Binds, { Key=nil, Mode="Toggle" })
         kbBindIdx = #t.Binds
         bindingFor = kbCurrent
-        KbRefresh(); UpdateBindLabel(kbCurrent)
+        kbKeyBtn.Text = "Press key..."
+        kbKeyBtn.TextColor3 = C.orange
+        kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+        kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
+        UpdateBindLabel(kbCurrent)
+        KbRebuildChips()
     end)
 end
 
@@ -1000,21 +1052,30 @@ kbKeyBtn.MouseButton1Click:Connect(function()
     if not t.Binds[kbBindIdx] then
         table.insert(t.Binds,{Key=nil,Mode="Toggle"}); kbBindIdx=#t.Binds
     end
-    bindingFor=kbCurrent; KbRefresh(); UpdateBindLabel(kbCurrent)
+    bindingFor=kbCurrent
+    kbKeyBtn.Text = "Press key..."
+    kbKeyBtn.TextColor3 = C.orange
+    UpdateBindLabel(kbCurrent)
 end)
 kbModeT.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
     if not b or not b.Key then return end
-    b.Mode="Toggle"; UpdateAllBinds(); KbRefresh()
+    b.Mode="Toggle"
+    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
+    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
+    UpdateBindLabel(kbCurrent)
 end)
 kbModeH.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
     if not b or not b.Key then return end
-    b.Mode="Hold"; UpdateAllBinds(); KbRefresh()
+    b.Mode="Hold"
+    kbModeT.BackgroundColor3 = C.bg; kbModeT.TextColor3 = C.dim; kbModeTStroke.Color = C.border
+    kbModeH.BackgroundColor3 = C.orange; kbModeH.TextColor3 = C.text; kbModeHStroke.Color = C.orange
+    UpdateBindLabel(kbCurrent)
 end)
 
 -- Open popup: link to toggle, position at cursor
