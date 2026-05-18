@@ -922,7 +922,7 @@ New("Frame",{
     BackgroundColor3=Hex("2a2a2a"), BorderSizePixel=0,
 }, kbRight)
 
--- Footer: Del | Menu
+-- Footer: Del | Hide | Menu
 local kbDelBtn = New("TextButton",{
     Position=UDim2.new(0,8,0,122), Size=UDim2.new(0,34,0,26),
     Text="Del", TextColor3=C.red, BackgroundColor3=Hex("1e1e1e"),
@@ -931,6 +931,14 @@ local kbDelBtn = New("TextButton",{
 }, kbRight)
 Corner(kbDelBtn, 5)
 Stroke(kbDelBtn, Hex("2e2e2e"), 1)
+local kbHideBtn = New("TextButton",{
+    Position=UDim2.new(0,46,0,122), Size=UDim2.new(0,42,0,26),
+    Text="Hide", TextColor3=Hex("777777"), BackgroundColor3=Hex("1e1e1e"),
+    BorderSizePixel=0, Font=Enum.Font.Gotham, TextSize=9,
+    AutoButtonColor=false, Active=true, ZIndex=101,
+}, kbRight)
+Corner(kbHideBtn, 5)
+Stroke(kbHideBtn, Hex("2e2e2e"), 1)
 local kbMenuBtn = New("TextButton",{
     Position=UDim2.new(1,-32,0,122), Size=UDim2.new(0,26,0,26),
     Text=":", TextColor3=Hex("777777"), BackgroundColor3=Hex("1e1e1e"),
@@ -973,6 +981,12 @@ kbDelBtn.MouseButton1Click:Connect(function()
     end
     UpdateBindLabel(kbCurrent)
     if KbRebuildChips then KbRebuildChips() end
+end)
+kbHideBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
+    if not kbCurrent then return end
+    local refs=CheckboxRefs[kbCurrent]
+    if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
 end)
 kbMenuBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
