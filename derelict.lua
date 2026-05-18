@@ -170,8 +170,6 @@ local SGui = New("ScreenGui", {
     ZIndexBehavior=Enum.ZIndexBehavior.Sibling, IgnoreGuiInset=true,
 }, PlayerGui)
 do  -- Move to CoreGui so the ScreenGui renders above the Drawing API layer
-    pcall(function() syn.protect_gui(SGui) end)
-    pcall(function() protect_gui(SGui) end)
     local ok = pcall(function() SGui.Parent = game:GetService("CoreGui") end)
     if not ok then
         local hui = pcall(gethui) and gethui()
@@ -1489,7 +1487,6 @@ end
 
 -- ═══════════════════════════════════════════════════════════
 -- BACKEND: SPOOFER HOOKS (Infinite Stamina)
--- ═══════════════════════════════════════════════════════════
 do
     local ok, mt = pcall(getrawmetatable, game)
     if ok and mt then
@@ -1497,13 +1494,12 @@ do
         local oldIndex    = mt.__index
         pcall(setreadonly, mt, false)
 
-        -- Use closure() as fallback if newcclosure is not available in Potassium
-        local closureFunc = newcclosure or closure or function(f) return f end
+        local isOurCode = isexecutorclosure or function() return false end
 
-        mt.__namecall = closureFunc(function(self, ...)
+        mt.__namecall = newcclosure(function(self, ...)
             local method = getnamecallmethod()
             local args   = {...}
-            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
+            if Toggles.Infinite_Stamina.Value and not isOurCode() then
                 if method == "GetAttribute" and type(args[1]) == "string" then
                     local a = string.lower(args[1])
                     if a == "stamina" or a == "energy" then return 1000 end
@@ -1512,8 +1508,8 @@ do
             return oldNamecall(self, ...)
         end)
 
-        mt.__index = closureFunc(function(t, k)
-            if Toggles.Infinite_Stamina.Value and not (checkcaller and checkcaller()) then
+        mt.__index = newcclosure(function(t, k)
+            if Toggles.Infinite_Stamina.Value and not isOurCode() then
                 if tostring(k) == "Value" and typeof(t) == "Instance" then
                     local n = string.lower(t.Name)
                     if n == "stamina" or n == "energy" then return 1000 end
