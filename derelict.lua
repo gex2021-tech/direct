@@ -874,24 +874,24 @@ local kbChipsLayout = New("UIListLayout",{
 New("Frame",{Position=UDim2.new(0,6,0,108),Size=UDim2.new(1,-12,0,1),
     BackgroundColor3=Hex("2d2d2d"),BorderSizePixel=0},kbRight)
 
--- Footer: X | ○ | Hide | 
-local kbDelBtn = New("TextButton",{Position=UDim2.new(0,6,0,114),Size=UDim2.new(0,24,0,24),
-    Text="✕",TextColor3=C.red,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=12,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
+-- Footer: Del | Eye | Hide | Menu
+local kbDelBtn = New("TextButton",{Position=UDim2.new(0,6,0,114),Size=UDim2.new(0,32,0,24),
+    Text="Del",TextColor3=C.red,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbDelBtn, 4)
 Stroke(kbDelBtn, Hex("333333"), 1)
-local kbEyeBtn = New("TextButton",{Position=UDim2.new(0,34,0,114),Size=UDim2.new(0,24,0,24),
-    Text="○",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=12,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
+local kbEyeBtn = New("TextButton",{Position=UDim2.new(0,42,0,114),Size=UDim2.new(0,32,0,24),
+    Text="Eye",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbEyeBtn, 4)
 Stroke(kbEyeBtn, Hex("333333"), 1)
-local kbHideBtn = New("TextButton",{Position=UDim2.new(0,62,0,114),Size=UDim2.new(0,40,0,24),
+local kbHideBtn = New("TextButton",{Position=UDim2.new(0,78,0,114),Size=UDim2.new(0,40,0,24),
     Text="Hide",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
     BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=9,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbHideBtn, 4)
 Stroke(kbHideBtn, Hex("333333"), 1)
 local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-30,0,114),Size=UDim2.new(0,24,0,24),
-    Text="≡",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
+    Text="",TextColor3=C.dim,BackgroundColor3=Hex("252525"),BackgroundTransparency=0,
     BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=12,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbMenuBtn, 4)
 Stroke(kbMenuBtn, Hex("333333"), 1)
