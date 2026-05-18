@@ -730,12 +730,10 @@ local _popupIgnoreNextClose = false
 local kbInner = New("Frame", {
     Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, BorderSizePixel=0, Active=true,
 }, kbPanel)
-kbInner.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        _popupIgnoreNextClose = true
-    end
+kbInner.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
 end)
-track(UserInput.InputBegan:Connect(function(i)
+track(UserInput.InputEnded:Connect(function(i)
     if i.UserInputType==Enum.UserInputType.MouseButton1 and kbPanel.Visible then
         if _popupIgnoreNextClose then
             _popupIgnoreNextClose = false
@@ -774,15 +772,13 @@ New("UIPadding",{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,22)},kbNewBt
 New("TextLabel",{Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,14,1,0),
     Text=">",TextColor3=C.accent,BackgroundTransparency=1,
     TextXAlignment=Enum.TextXAlignment.Center,Font=Enum.Font.GothamBold,TextSize=10},kbNewBtn)
-kbNewBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        if not kbCurrent or not Toggles[kbCurrent] then return end
-        local t = Toggles[kbCurrent]
-        table.insert(t.Binds, { Key=nil, Mode="Toggle" })
-        kbBindIdx = #t.Binds
-        bindingFor = kbCurrent
-        KbRefresh(); UpdateBindLabel(kbCurrent)
-    end
+kbNewBtn.MouseButton1Click:Connect(function()
+    if not kbCurrent or not Toggles[kbCurrent] then return end
+    local t = Toggles[kbCurrent]
+    table.insert(t.Binds, { Key=nil, Mode="Toggle" })
+    kbBindIdx = #t.Binds
+    bindingFor = kbCurrent
+    KbRefresh(); UpdateBindLabel(kbCurrent)
 end)
 HoverFx(kbNewBtn, C.accent)
 New("Frame",{Position=UDim2.new(0,0,0,46),Size=UDim2.new(1,0,0,1),
@@ -797,13 +793,11 @@ New("TextLabel",{
     Size=UDim2.new(1,0,1,0),
 },kbHotBtn)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbHotBtn)
-kbHotBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        print("[Derelict] active hotkeys:")
-        for _, t in pairs(Toggles) do
-            for _, b in ipairs(t.Binds) do
-                if b.Key then print("  "..t.Label.." -> "..b.Key.." ("..b.Mode..")") end
-            end
+kbHotBtn.MouseButton1Click:Connect(function()
+    print("[Derelict] active hotkeys:")
+    for _, t in pairs(Toggles) do
+        for _, b in ipairs(t.Binds) do
+            if b.Key then print("  "..t.Label.." -> "..b.Key.." ("..b.Mode..")") end
         end
     end
 end)
@@ -820,17 +814,15 @@ New("TextLabel",{
     Size=UDim2.new(1,0,1,0),
 },kbResetBtn)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
-kbResetBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        if not kbCurrent or not Toggles[kbCurrent] then return end
-        local t = Toggles[kbCurrent]
-        if t.Binds[kbBindIdx] then
-            t.Binds[kbBindIdx].Key = nil
-            t.Binds[kbBindIdx].Mode = "Toggle"
-        end
-        if bindingFor==kbCurrent then bindingFor=nil end
-        KbRefresh(); UpdateAllBinds()
+kbResetBtn.MouseButton1Click:Connect(function()
+    if not kbCurrent or not Toggles[kbCurrent] then return end
+    local t = Toggles[kbCurrent]
+    if t.Binds[kbBindIdx] then
+        t.Binds[kbBindIdx].Key = nil
+        t.Binds[kbBindIdx].Mode = "Toggle"
     end
+    if bindingFor==kbCurrent then bindingFor=nil end
+    KbRefresh(); UpdateAllBinds()
 end)
 HoverFx(kbResetBtn, C.red)
 
@@ -899,45 +891,31 @@ local kbMenuBtn = New("Frame",{Position=UDim2.new(1,-26,0,104),Size=UDim2.new(0,
 New("TextLabel",{Size=UDim2.new(1,0,1,0),Text="=",TextColor3=C.dim,
     BackgroundTransparency=1,Font=Enum.Font.GothamBold,TextSize=11},kbMenuBtn)
 
--- Click handlers using InputBegan (more reliable than MouseButton1Click on Frames)
-kbDelBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        if not kbCurrent or not Toggles[kbCurrent] then return end
-        local t = Toggles[kbCurrent]
-        if #t.Binds > 0 then
-            table.remove(t.Binds, kbBindIdx)
-            kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
-        end
-        if bindingFor==kbCurrent then bindingFor=nil end
-        KbRefresh(); UpdateAllBinds()
+-- Click handlers using MouseButton1Click (fires on release, more reliable)
+kbDelBtn.MouseButton1Click:Connect(function()
+    if not kbCurrent or not Toggles[kbCurrent] then return end
+    local t = Toggles[kbCurrent]
+    if #t.Binds > 0 then
+        table.remove(t.Binds, kbBindIdx)
+        kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
     end
+    if bindingFor==kbCurrent then bindingFor=nil end
+    KbRefresh(); UpdateAllBinds()
 end)
-kbHideEye.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        local function kbDoHide()
-            if not kbCurrent then return end
-            local refs=CheckboxRefs[kbCurrent]
-            if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
-        end
-        kbDoHide()
-    end
+kbHideEye.MouseButton1Click:Connect(function()
+    if not kbCurrent then return end
+    local refs=CheckboxRefs[kbCurrent]
+    if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
 end)
-kbHideBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        local function kbDoHide()
-            if not kbCurrent then return end
-            local refs=CheckboxRefs[kbCurrent]
-            if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
-        end
-        kbDoHide()
-    end
+kbHideBtn.MouseButton1Click:Connect(function()
+    if not kbCurrent then return end
+    local refs=CheckboxRefs[kbCurrent]
+    if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
 end)
-kbMenuBtn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        for _,t in pairs(Toggles) do t.Binds = {} end
-        bindingFor=nil; kbCurrent=nil; kbBindIdx=1
-        KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
-    end
+kbMenuBtn.MouseButton1Click:Connect(function()
+    for _,t in pairs(Toggles) do t.Binds = {} end
+    bindingFor=nil; kbCurrent=nil; kbBindIdx=1
+    KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
 end)
 
 -- ── (state hoisted above ClosePopup) ──
