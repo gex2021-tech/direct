@@ -827,19 +827,8 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Force visual update by toggling visibility
-    kbKeyBtn.Visible = false
-    kbKeyBtn.Text = "-"
-    kbKeyBtn.TextColor3 = C.dim
-    kbKeyBtn.Visible = true
-    kbModeT.BackgroundColor3 = C.accent
-    kbModeT.TextColor3 = C.text
-    kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = C.bg
-    kbModeH.TextColor3 = C.dim
-    kbModeHStroke.Color = C.border
     UpdateBindLabel(kbCurrent)
-    if KbRebuildChips then KbRebuildChips() end
+    KbRefresh()
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
@@ -849,12 +838,17 @@ local kbRight = New("Frame",{Position=UDim2.new(0,120,0,0),Size=UDim2.new(1,-120
 New("TextLabel",{Position=UDim2.new(0,6,0,11),Size=UDim2.new(0,22,0,12),
     Text="Key",TextColor3=C.dim,BackgroundTransparency=1,
     TextXAlignment=Enum.TextXAlignment.Left,Font=Enum.Font.GothamBold,TextSize=8},kbRight)
-local kbKeyBtn = New("TextButton",{
+local kbKeyBtnFrame = New("Frame",{
     Position=UDim2.new(0,30,0,9),Size=UDim2.new(1,-34,0,16),
-    Text="-",TextColor3=C.dim,BackgroundColor3=C.bg,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-Corner(kbKeyBtn,2)
-Stroke(kbKeyBtn,C.border,1)
+    BackgroundColor3=C.bg,BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
+Corner(kbKeyBtnFrame,2)
+Stroke(kbKeyBtnFrame,C.border,1)
+local kbKeyBtn = New("TextLabel",{
+    Size=UDim2.new(1,0,1,0),
+    Text="-",TextColor3=C.dim,BackgroundTransparency=1,
+    Font=Enum.Font.GothamBold,TextSize=8,
+    TextXAlignment=Enum.TextXAlignment.Center,
+},kbKeyBtnFrame)
 -- Mode row (y=32)
 New("TextLabel",{Position=UDim2.new(0,6,0,33),Size=UDim2.new(0,28,0,12),
     Text="Mode",TextColor3=C.dim,BackgroundTransparency=1,
@@ -1051,17 +1045,19 @@ KbRebuildChips = function()
 end
 
 -- ── Event handlers ──
-kbKeyBtn.MouseButton1Click:Connect(function()
-    _popupIgnoreNextClose = true
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    local t = Toggles[kbCurrent]
-    if not t.Binds[kbBindIdx] then
-        table.insert(t.Binds,{Key=nil,Mode="Toggle"}); kbBindIdx=#t.Binds
+kbKeyBtnFrame.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        _popupIgnoreNextClose = true
+        if not kbCurrent or not Toggles[kbCurrent] then return end
+        local t = Toggles[kbCurrent]
+        if not t.Binds[kbBindIdx] then
+            table.insert(t.Binds,{Key=nil,Mode="Toggle"}); kbBindIdx=#t.Binds
+        end
+        bindingFor=kbCurrent
+        kbKeyBtn.Text = "Press key..."
+        kbKeyBtn.TextColor3 = C.orange
+        UpdateBindLabel(kbCurrent)
     end
-    bindingFor=kbCurrent
-    kbKeyBtn.Text = "Press key..."
-    kbKeyBtn.TextColor3 = C.orange
-    UpdateBindLabel(kbCurrent)
 end)
 kbModeT.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
