@@ -728,6 +728,10 @@ local function ClosePopup()
 end
 track(UserInput.InputBegan:Connect(function(i)
     if i.UserInputType==Enum.UserInputType.MouseButton1 and kbPanel.Visible then
+        -- Check if click is inside the popup or its children
+        if i.GuiObject and (i.GuiObject == kbPanel or i.GuiObject:IsDescendantOf(kbPanel)) then
+            return -- Click inside popup, do nothing
+        end
         local mp = UserInput:GetMouseLocation()
         local pp, ps = kbPanel.AbsolutePosition, kbPanel.AbsoluteSize
         if mp.X<pp.X or mp.X>pp.X+ps.X or mp.Y<pp.Y or mp.Y>pp.Y+ps.Y then
@@ -1395,6 +1399,7 @@ track(UserInput.InputBegan:Connect(function(input, processed)
     -- 2) menu toggle (hard-coded RightShift)
     if key == "RightShift" then 
         Main.Visible = not Main.Visible
+        if not Main.Visible then ClosePopup() end
         return 
     end
 
