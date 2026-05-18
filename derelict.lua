@@ -1055,33 +1055,127 @@ RefreshKeybindList = function()
     if kbPanel.Visible then KbRefresh() end
 end
 
--- ── Right mid: Log (decorative) ────────────────────────────
-local logPanel = Panel(Always, 562, 4, 394, 270, "Log")
-local logC = PanelContent(logPanel)
-TabStrip(logC, 3, { "Editor", "Options" })
-for i,n in ipairs({"File","Load","Unload","Save","Refresh","Unloader"}) do
-    SmallBtn(logC, (i-1)*58+4, 22, 54, 16, n)
+-- ── Right mid: Workspace Inspector ──
+local inspPanel = Panel(Always, 562, 4, 394, 270, "Workspace Inspector")
+local inspC = PanelContent(inspPanel)
+local inspTree = New("ScrollingFrame", {
+    Position=UDim2.new(0,4,0,4), Size=UDim2.new(1,-8,0,130),
+    BackgroundTransparency=1, BorderSizePixel=0, ScrollBarThickness=4,
+    ScrollBarImageColor3=C.border, CanvasSize=UDim2.new(0,0,0,0),
+    AutomaticCanvasSize=Enum.AutomaticSize.Y,
+}, inspC)
+local inspProps = New("ScrollingFrame", {
+    Position=UDim2.new(0,4,0,158), Size=UDim2.new(1,-8,1,-162),
+    BackgroundTransparency=1, BorderSizePixel=0, ScrollBarThickness=4,
+    ScrollBarImageColor3=C.border, CanvasSize=UDim2.new(0,0,0,0),
+    AutomaticCanvasSize=Enum.AutomaticSize.Y,
+}, inspC)
+local inspSelected = nil
+local function InspClearProps()
+    for _, c in ipairs(inspProps:GetChildren()) do if c:IsA("TextLabel") then c:Destroy() end end
 end
-local codeArea = New("Frame", {
-    Position=UDim2.new(0,4,0,42), Size=UDim2.new(1,-8,1,-46),
-    BackgroundColor3=C.bg, BorderSizePixel=0, ClipsDescendants=true,
-}, logC)
-Stroke(codeArea, C.border, 1)
-local gutter = New("Frame", {
-    Size=UDim2.new(0,28,1,0), BackgroundColor3=C.hdr, BorderSizePixel=0,
-}, codeArea)
-Stroke(gutter, C.border, 1)
-New("TextLabel", {
-    Position=UDim2.new(0,2,0,6), Size=UDim2.new(1,-4,0,12),
-    Text="1", TextColor3=C.dim, BackgroundTransparency=1,
-    Font=Enum.Font.Code, TextSize=9,
-}, gutter)
-New("TextLabel", {
-    Position=UDim2.new(0,34,0,6), Size=UDim2.new(1,-38,0,12),
-    Text="-- // Derelict ESP loaded", TextColor3=Hex("6a9955"),
-    BackgroundTransparency=1, TextXAlignment=Enum.TextXAlignment.Left,
-    Font=Enum.Font.Code, TextSize=9,
-}, codeArea)
+local function InspShowProps(obj)
+    InspClearProps()
+    if not obj then return end
+    local props = {"Name","ClassName","Parent","Position","Size","Anchored","CanCollide","Transparency","Color","Material","Health","MaxHealth"}
+    local y = 0
+    for _, p in ipairs(props) do
+        local val = "nil"
+        local ok, res = pcall(function()
+            local v = obj[p]
+            if typeof(v) == "Vector3" then return string.format("(%.1f, %.1f, %.1f)", v.X, v.Y, v.Z)
+            elseif typeof(v) == "Color3" then return string.format("(%.2f, %.2f, %.2f)", v.R, v.G, v.B)
+            elseif typeof(v) == "EnumItem" then return v.Name
+            elseif typeof(v) == "Instance" then return v:GetFullName()
+            elseif typeof(v) == "boolean" then return tostring(v)
+            elseif typeof(v) == "number" then return tostring(v)
+            elseif typeof(v) == "string" then return '"'..v..'"'
+            else return tostring(v) end
+        end)
+        if ok then val = res else val = "?" end
+        New("TextLabel", {
+            Position=UDim2.new(0,0,0,y), Size=UDim2.new(1,0,0,11),
+            Text=p..": "..val, TextColor3=C.dim, BackgroundTransparency=1,
+            TextXAlignment=Enum.TextXAlignment.Left,
+            Font=Enum.Font.Code, TextSize=8,
+        }, inspProps)
+        y = y + 11
+    end
+end
+local function InspBuildTree(parent, depth, yStart)
+    local y = yStart
+    for _, child in ipairs(parent:GetChildren()) do
+        if child:IsA("Folder") or child:IsA("Model") or child:IsA("Part") or child:IsA("MeshPart") or child:IsA("BasePart") or child:IsA("Humanoid") or child.Name:lower():find("enemy") or child.Name:lower():find("boss") or child.Name:lower():find("npc") or child.Name:lower():find("item") or child.Name:lower():find("loot") or child.Name:lower():find("chest") then
+            local indent = depth * 10
+            local row = New("TextButton", {
+                Position=UDim2.new(0,indent,0,y), Size=UDim2.new(1,-indent,0,12),
+                Text="", BackgroundColor3=inspSelected==child and C.accent or C.bg,
+                BorderSizePixel=0, AutoButtonColor=false,
+            }, inspTree)
+            New("TextLabel", {
+                Position=UDim2.new(0,4,0,0), Size=UDim2.new(1,-8,1,0),
+                Text=child.ClassName.."  "..child.Name, TextColor3=inspSelected==child and Color3.new(1,1,1) or C.text,
+                BackgroundTransparency=1, TextXAlignment=Enum.TextXAlignment.Left,
+                Font=Enum.Font.Code, TextSize=8,
+            }, row)
+            local c = child
+            row.MouseButton1Click:Connect(function()
+                inspSelected = c
+                InspBuildTree(workspace, 0, 0)
+                InspShowProps(c)
+            end)
+            y = y + 12
+            if y > 200 then break end
+        end
+        if y > 200 then break end
+    end
+    return y
+end
+local function InspRefresh()
+    for _, c in ipairs(inspTree:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+    InspBuildTree(workspace, 0, 0)
+    if inspSelected and inspSelected.Parent then
+        InspShowProps(inspSelected)
+    else
+        inspSelected = nil
+        InspClearProps()
+    end
+end
+local inspScanBtn = New("TextButton", {
+    Position=UDim2.new(0,4,0,138), Size=UDim2.new(0,50,0,16),
+    Text="Scan", TextColor3=C.text, BackgroundColor3=C.hdr,
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+}, inspC)
+Stroke(inspScanBtn, C.border, 1)
+inspScanBtn.MouseButton1Click:Connect(InspRefresh)
+local inspExportBtn = New("TextButton", {
+    Position=UDim2.new(0,58,0,138), Size=UDim2.new(0,60,0,16),
+    Text="Export", TextColor3=C.accent, BackgroundColor3=C.hdr,
+    BorderSizePixel=0, Font=Enum.Font.GothamBold, TextSize=9,
+}, inspC)
+Stroke(inspExportBtn, C.border, 1)
+local function InspExport()
+    local lines = {"-- Derelict Workspace Dump"}
+    local function dump(obj, indent)
+        local pad = string.rep("  ", indent)
+        if obj:IsA("Folder") or obj:IsA("Model") then
+            table.insert(lines, pad..obj.ClassName.." \""..obj.Name.."\" {")
+            for _, c in ipairs(obj:GetChildren()) do dump(c, indent+1) end
+            table.insert(lines, pad.."}")
+        elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
+            local pos = obj.Position
+            table.insert(lines, pad..obj.ClassName.." \""..obj.Name.."\" pos=("..string.format("%.1f,%.1f,%.1f", pos.X, pos.Y, pos.Z)..")")
+        elseif obj:IsA("Humanoid") then
+            table.insert(lines, pad.."Humanoid hp="..obj.Health.."/"..obj.MaxHealth)
+        end
+    end
+    for _, c in ipairs(workspace:GetChildren()) do dump(c, 0) end
+    local result = table.concat(lines, "\n")
+    pcall(function() setclipboard(result) end)
+    Notify("Inspector", "Exported to clipboard ("..#lines.." lines)", "Success")
+end
+inspExportBtn.MouseButton1Click:Connect(InspExport)
+InspRefresh()
 
 -- ── Right bottom: Activity (real) ──────────────────────────
 local actPanel = Panel(Always, 562, 278, 394, 270, "Activity")
