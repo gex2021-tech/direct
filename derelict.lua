@@ -705,7 +705,7 @@ local Always = New("Frame", {
 -- ── CONTEXT KEYBIND POPUP ─ matches reference image ─ right-click [+] ─
 local kbPanel = New("Frame", {
     Position=UDim2.new(0,0,0,0), Size=UDim2.new(0,290,0,140),
-    BackgroundColor3=C.panel, BorderSizePixel=0, ClipsDescendants=true,
+    BackgroundColor3=C.panel, BorderSizePixel=0,
     Visible=false, ZIndex=100,
 }, SGui)
 Corner(kbPanel, 4)
@@ -757,7 +757,7 @@ local kbNewBtn = New("TextButton",{
     Text="+ New Bind",TextColor3=C.accent,
     BackgroundColor3=C.hdr,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,22)},kbNewBtn)
 New("TextLabel",{Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,14,1,0),
     Text=">",TextColor3=C.accent,BackgroundTransparency=1,
@@ -771,7 +771,7 @@ local kbHotBtn = New("TextButton",{
     Text="= Hotkeys",TextColor3=C.text,
     BackgroundColor3=C.hdr,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbHotBtn)
 HoverFx(kbHotBtn, C.hdr)
 New("Frame",{Position=UDim2.new(0,0,0,93),Size=UDim2.new(1,0,0,1),
@@ -782,7 +782,7 @@ local kbResetBtn = New("TextButton",{
     Text="o Reset",TextColor3=C.red,
     BackgroundColor3=C.red,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
 HoverFx(kbResetBtn, C.red)
 
@@ -796,7 +796,7 @@ New("TextLabel",{Position=UDim2.new(0,6,0,11),Size=UDim2.new(0,22,0,12),
 local kbKeyBtn = New("TextButton",{
     Position=UDim2.new(0,30,0,9),Size=UDim2.new(1,-34,0,16),
     Text="-",TextColor3=C.dim,BackgroundColor3=C.bg,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=8,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbKeyBtn,2)
 Stroke(kbKeyBtn,C.border,1)
 -- Mode row (y=32)
@@ -806,13 +806,13 @@ New("TextLabel",{Position=UDim2.new(0,6,0,33),Size=UDim2.new(0,28,0,12),
 local kbModeT = New("TextButton",{
     Position=UDim2.new(0,36,0,31),Size=UDim2.new(0,44,0,16),
     Text="Toggle",TextColor3=C.text,BackgroundColor3=C.accent,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbModeT,3)
 local kbModeTStroke = Stroke(kbModeT,C.accent,1)
 local kbModeH = New("TextButton",{
     Position=UDim2.new(0,84,0,31),Size=UDim2.new(0,44,0,16),
     Text="Hold",TextColor3=C.dim,BackgroundColor3=C.bg,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 Corner(kbModeH,3)
 local kbModeHStroke = Stroke(kbModeH,C.border,1)
 -- Separator (y=53)
@@ -836,16 +836,16 @@ New("Frame",{Position=UDim2.new(0,4,0,98),Size=UDim2.new(1,-8,0,1),
 -- Footer (y=104): trash | eye | Hide | menu
 local kbDelBtn = New("TextButton",{Position=UDim2.new(0,4,0,104),Size=UDim2.new(0,22,0,22),
     Text="X",TextColor3=C.red,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 local kbHideEye = New("TextButton",{Position=UDim2.new(0,28,0,104),Size=UDim2.new(0,22,0,22),
     Text="o",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 local kbHideBtn = New("TextButton",{Position=UDim2.new(0,52,0,104),Size=UDim2.new(0,36,0,22),
     Text="Hide",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-26,0,104),Size=UDim2.new(0,22,0,22),
     Text="=",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
 
 -- ── (state hoisted above ClosePopup) ──
 -- Sync right pane to current toggle + selected bind
