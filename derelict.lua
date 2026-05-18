@@ -774,6 +774,7 @@ New("TextLabel",{Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,14,1,0),
     TextXAlignment=Enum.TextXAlignment.Center,Font=Enum.Font.GothamBold,TextSize=10},kbNewBtn)
 HoverFx(kbNewBtn, C.accent)
 kbNewBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
     table.insert(t.Binds, { Key=nil, Mode="Toggle" })
@@ -793,6 +794,7 @@ local kbHotBtn = New("TextButton",{
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbHotBtn)
 HoverFx(kbHotBtn, C.hdr)
 kbHotBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     print("[Derelict] active hotkeys:")
     for _, t in pairs(Toggles) do
         for _, b in ipairs(t.Binds) do
@@ -812,6 +814,7 @@ local kbResetBtn = New("TextButton",{
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
 HoverFx(kbResetBtn, C.red)
 kbResetBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
     if t.Binds[kbBindIdx] then
@@ -885,6 +888,7 @@ local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-26,0,104),Size=UDim2.n
 
 -- Click handlers
 kbDelBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
     if #t.Binds > 0 then
@@ -895,16 +899,19 @@ kbDelBtn.MouseButton1Click:Connect(function()
     KbRefresh(); UpdateAllBinds()
 end)
 kbHideEye.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent then return end
     local refs=CheckboxRefs[kbCurrent]
     if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
 end)
 kbHideBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent then return end
     local refs=CheckboxRefs[kbCurrent]
     if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
 end)
 kbMenuBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     for _,t in pairs(Toggles) do t.Binds = {} end
     bindingFor=nil; kbCurrent=nil; kbBindIdx=1
     KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
@@ -960,6 +967,7 @@ KbRebuildChips = function()
         Stroke(chip,sel and C.accent or C.border,1)
         local idx = i
         chip.MouseButton1Click:Connect(function()
+            _popupIgnoreNextClose = true
             kbBindIdx = idx; if bindingFor then bindingFor=nil end
             KbRefresh()
         end)
@@ -973,6 +981,7 @@ KbRebuildChips = function()
     Corner(addChip,3)
     Stroke(addChip,C.accent,1)
     addChip.MouseButton1Click:Connect(function()
+        _popupIgnoreNextClose = true
         table.insert(t.Binds, { Key=nil, Mode="Toggle" })
         kbBindIdx = #t.Binds
         bindingFor = kbCurrent
@@ -982,6 +991,7 @@ end
 
 -- ── Event handlers ──
 kbKeyBtn.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
     if not t.Binds[kbBindIdx] then
@@ -990,12 +1000,14 @@ kbKeyBtn.MouseButton1Click:Connect(function()
     bindingFor=kbCurrent; KbRefresh(); UpdateBindLabel(kbCurrent)
 end)
 kbModeT.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
-    if not b or not b.Key then return end  -- no key bound yet -> no-op
+    if not b or not b.Key then return end
     b.Mode="Toggle"; UpdateAllBinds(); KbRefresh()
 end)
 kbModeH.MouseButton1Click:Connect(function()
+    _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
     if not b or not b.Key then return end
