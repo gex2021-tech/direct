@@ -809,36 +809,7 @@ kbHotBtn.MouseButton1Click:Connect(function()
 end)
 New("Frame",{Position=UDim2.new(0,0,0,93),Size=UDim2.new(1,0,0,1),
     BackgroundColor3=C.border,BorderSizePixel=0},kbLeft)
--- Row 3: Reset (y=94..140)
-local kbResetBtn = New("TextButton",{
-    Position=UDim2.new(0,0,0,94),Size=UDim2.new(1,0,0,46),
-    Text="o Reset",TextColor3=C.red,
-    BackgroundColor3=C.red,BackgroundTransparency=0.98,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
-New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
-HoverFx(kbResetBtn, C.red)
-local function ForceKeyBtnUpdate(text, color)
-    kbKeyBtn.Text = text
-    kbKeyBtn.TextColor3 = color
-    kbKeyBtn.Parent = nil
-    kbKeyBtn.Parent = kbKeyBtnFrame
-end
-kbResetBtn.MouseButton1Click:Connect(function()
-    _popupIgnoreNextClose = true
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    local t = Toggles[kbCurrent]
-    if t.Binds[kbBindIdx] then
-        t.Binds[kbBindIdx].Key = nil
-        t.Binds[kbBindIdx].Mode = "Toggle"
-    end
-    if bindingFor==kbCurrent then bindingFor=nil end
-    ForceKeyBtnUpdate("-", C.dim)
-    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
-    UpdateBindLabel(kbCurrent)
-    KbRefresh()
-end)
+
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
 local kbRight = New("Frame",{Position=UDim2.new(0,120,0,0),Size=UDim2.new(1,-120,1,0),
