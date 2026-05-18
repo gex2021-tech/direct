@@ -822,12 +822,13 @@ kbResetBtn.MouseButton1Click:Connect(function()
     _popupIgnoreNextClose = true
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
-    if t.Binds[kbBindIdx] then
-        t.Binds[kbBindIdx].Key = nil
-        t.Binds[kbBindIdx].Mode = "Toggle"
+    if #t.Binds > 0 then
+        -- Remove the bind and add a fresh empty one (same pattern as X button)
+        table.remove(t.Binds, kbBindIdx)
+        table.insert(t.Binds, kbBindIdx, { Key=nil, Mode="Toggle" })
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Force UI update directly (same as X button pattern)
+    -- Direct UI update
     kbKeyBtn.Text = "-"
     kbKeyBtn.TextColor3 = C.dim
     kbModeT.BackgroundColor3 = C.accent
@@ -837,14 +838,7 @@ kbResetBtn.MouseButton1Click:Connect(function()
     kbModeH.TextColor3 = C.dim
     kbModeHStroke.Color = C.border
     UpdateBindLabel(kbCurrent)
-    -- Update the chip text directly without rebuilding
-    for _, chip in ipairs(kbChips:GetChildren()) do
-        if chip:IsA("TextButton") and chip.LayoutOrder == kbBindIdx then
-            chip.Text = "-:T"
-            chip.TextColor3 = C.text
-            chip.BackgroundColor3 = C.accent
-        end
-    end
+    if KbRebuildChips then KbRebuildChips() end
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
