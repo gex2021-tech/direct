@@ -1177,7 +1177,8 @@ track(UserInput.InputBegan:Connect(function(input, processed)
     end
 
     -- 3) block inputs when chat/textbox is focused
-    if UserInput:GetFocusedObject() then return end
+    local focused = pcall(function() return UserInput:GetFocusedObject() end) and UserInput:GetFocusedObject()
+    if focused and focused:IsA("TextBox") then return end
 
     if processed then return end
 
