@@ -51,6 +51,15 @@ function Derelict:DisconnectAll()
     self.ActiveConnections = {}
 end
 
+function Derelict:DisconnectAll()
+    for _, conn in ipairs(self.ActiveConnections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    self.ActiveConnections = {}
+end
+
 -- ───────────────────────────────────────────────────────────
 -- NOTIFY SYSTEM (Toast Notifications)
 -- ───────────────────────────────────────────────────────────
@@ -264,6 +273,88 @@ do  -- Move to CoreGui so the ScreenGui renders above the Drawing API layer
             SGui.Parent = PlayerGui
         end
     end
+end
+
+-- ───────────────────────────────────────────────────────────
+-- NOTIFY SYSTEM (Toast Notifications)
+-- ───────────────────────────────────────────────────────────
+local NotifyContainer = nil
+function Notify(title, msg, nType)
+    if not NotifyContainer then
+        NotifyContainer = New("Frame", {
+            Position = UDim2.new(1, -10, 1, -10),
+            Size = UDim2.new(0, 280, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+        }, SGui)
+        New("UIListLayout", {
+            FillDirection = Enum.FillDirection.Vertical,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+            Padding = UDim.new(0, 4),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+        }, NotifyContainer)
+    end
+
+    local color = C.accent
+    if nType == "Success" then color = C.green
+    elseif nType == "Error" then color = C.red
+    elseif nType == "Warning" then color = C.orange end
+
+    local toast = New("Frame", {
+        Size = UDim2.new(0, 280, 0, 50),
+        BackgroundColor3 = C.panel,
+        BorderSizePixel = 0,
+        LayoutOrder = #NotifyContainer:GetChildren(),
+    }, NotifyContainer)
+    Corner(toast, 4)
+    Stroke(toast, color, 1)
+
+    New("TextLabel", {
+        Position = UDim2.new(0, 8, 0, 4),
+        Size = UDim2.new(1, -16, 0, 14),
+        Text = title,
+        TextColor3 = color,
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.GothamBold,
+        TextSize = 10,
+    }, toast)
+
+    New("TextLabel", {
+        Position = UDim2.new(0, 8, 0, 18),
+        Size = UDim2.new(1, -16, 0, 28),
+        Text = msg or "",
+        TextColor3 = C.text,
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        Font = Enum.Font.Gotham,
+        TextSize = 9,
+    }, toast)
+
+    table.insert(Derelict.Notifications, toast)
+
+    -- Animate in
+    toast.Position = UDim2.new(1, 10, 1, -10)
+    pcall(function()
+        TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -290, 0, 0),
+        }):Play()
+    end)
+
+    -- Auto-dismiss after 4s
+    spawn(function()
+        wait(4)
+        pcall(function()
+            TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Position = UDim2.new(1, 10, 0, 0),
+            }):Play()
+        end)
+        wait(0.3)
+        toast:Destroy()
+    end)
 end
 
 local Main = New("Frame", {
