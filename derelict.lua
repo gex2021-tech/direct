@@ -745,7 +745,7 @@ New("Frame",{Position=UDim2.new(0,118,0,0),Size=UDim2.new(0,1,1,0),
 
 -- ── LEFT pane: 3 fixed menu rows ──
 local kbLeft = New("Frame",{Position=UDim2.new(0,0,0,0),Size=UDim2.new(0,118,1,0),
-    BackgroundTransparency=1,ClipsDescendants=true},kbInner)
+    BackgroundTransparency=1},kbInner)
 -- Helper: hover feedback on left-pane rows
 local function HoverFx(btn, hoverColor)
     btn.MouseEnter:Connect(function() btn.BackgroundTransparency = 0.85; btn.BackgroundColor3 = hoverColor end)
@@ -757,7 +757,7 @@ local kbNewBtn = New("TextButton",{
     Text="+ New Bind",TextColor3=C.accent,
     BackgroundColor3=C.hdr,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,22)},kbNewBtn)
 New("TextLabel",{Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,14,1,0),
     Text=">",TextColor3=C.accent,BackgroundTransparency=1,
@@ -771,7 +771,7 @@ local kbHotBtn = New("TextButton",{
     Text="= Hotkeys",TextColor3=C.text,
     BackgroundColor3=C.hdr,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbHotBtn)
 HoverFx(kbHotBtn, C.hdr)
 New("Frame",{Position=UDim2.new(0,0,0,93),Size=UDim2.new(1,0,0,1),
@@ -782,13 +782,13 @@ local kbResetBtn = New("TextButton",{
     Text="o Reset",TextColor3=C.red,
     BackgroundColor3=C.red,BackgroundTransparency=1,
     BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false},kbLeft)
+    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true},kbLeft)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
 HoverFx(kbResetBtn, C.red)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
 local kbRight = New("Frame",{Position=UDim2.new(0,120,0,0),Size=UDim2.new(1,-120,1,0),
-    BackgroundTransparency=1,ClipsDescendants=true},kbInner)
+    BackgroundTransparency=1},kbInner)
 -- Key row (y=10)
 New("TextLabel",{Position=UDim2.new(0,6,0,11),Size=UDim2.new(0,22,0,12),
     Text="Key",TextColor3=C.dim,BackgroundTransparency=1,
@@ -836,16 +836,16 @@ New("Frame",{Position=UDim2.new(0,4,0,98),Size=UDim2.new(1,-8,0,1),
 -- Footer (y=104): trash | eye | Hide | menu
 local kbDelBtn = New("TextButton",{Position=UDim2.new(0,4,0,104),Size=UDim2.new(0,22,0,22),
     Text="X",TextColor3=C.red,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
 local kbHideEye = New("TextButton",{Position=UDim2.new(0,28,0,104),Size=UDim2.new(0,22,0,22),
     Text="o",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
 local kbHideBtn = New("TextButton",{Position=UDim2.new(0,52,0,104),Size=UDim2.new(0,36,0,22),
     Text="Hide",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true},kbRight)
 local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-26,0,104),Size=UDim2.new(0,22,0,22),
     Text="=",TextColor3=C.dim,BackgroundTransparency=1,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false},kbRight)
+    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true},kbRight)
 
 -- ── (state hoisted above ClosePopup) ──
 -- Sync right pane to current toggle + selected bind
@@ -956,22 +956,22 @@ kbHotBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
--- Reset: clear ONLY the selected bind entry
+-- Reset: clear ONLY the key of the selected bind (keep the bind slot)
 kbResetBtn.MouseButton1Click:Connect(function()
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
     if t.Binds[kbBindIdx] then
-        table.remove(t.Binds, kbBindIdx)
-        kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
+        t.Binds[kbBindIdx].Key = nil
+        t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
     KbRefresh(); UpdateAllBinds()
 end)
--- Trash icon: delete only the SELECTED bind entry
+-- Trash icon: delete the SELECTED bind entry completely
 kbDelBtn.MouseButton1Click:Connect(function()
     if not kbCurrent or not Toggles[kbCurrent] then return end
     local t = Toggles[kbCurrent]
-    if t.Binds[kbBindIdx] then
+    if #t.Binds > 0 then
         table.remove(t.Binds, kbBindIdx)
         kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
     end
