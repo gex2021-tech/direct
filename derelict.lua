@@ -827,17 +827,19 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Direct UI update
-    kbKeyBtn.Text = "-"
-    kbKeyBtn.TextColor3 = C.dim
-    kbModeT.BackgroundColor3 = C.accent
-    kbModeT.TextColor3 = C.text
-    kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = C.bg
-    kbModeH.TextColor3 = C.dim
-    kbModeHStroke.Color = C.border
-    UpdateBindLabel(kbCurrent)
-    if KbRebuildChips then KbRebuildChips() end
+    -- Defer UI update to next frame to ensure Roblox processes state change
+    task.defer(function()
+        kbKeyBtn.Text = "-"
+        kbKeyBtn.TextColor3 = C.dim
+        kbModeT.BackgroundColor3 = C.accent
+        kbModeT.TextColor3 = C.text
+        kbModeTStroke.Color = C.accent
+        kbModeH.BackgroundColor3 = C.bg
+        kbModeH.TextColor3 = C.dim
+        kbModeHStroke.Color = C.border
+        UpdateBindLabel(kbCurrent)
+        if KbRebuildChips then KbRebuildChips() end
+    end)
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
