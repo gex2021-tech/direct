@@ -752,65 +752,77 @@ local function HoverFx(btn, hoverColor)
     btn.MouseLeave:Connect(function() btn.BackgroundTransparency = 1 end)
 end
 -- Row 1: New Bind (y=0..46)
-local kbNewBtn = New("TextButton",{
+local kbNewBtn = New("Frame",{
     Position=UDim2.new(0,0,0,0),Size=UDim2.new(1,0,0,46),
-    Text="+ New Bind",TextColor3=C.accent,
-    BackgroundColor3=C.hdr,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbLeft)
+New("TextLabel",{
+    Text="+ New Bind",TextColor3=C.accent,BackgroundTransparency=1,
+    Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,
+    Size=UDim2.new(1,-22,1,0),
+},kbNewBtn)
 New("UIPadding",{PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,22)},kbNewBtn)
 New("TextLabel",{Position=UDim2.new(1,-18,0,0),Size=UDim2.new(0,14,1,0),
     Text=">",TextColor3=C.accent,BackgroundTransparency=1,
     TextXAlignment=Enum.TextXAlignment.Center,Font=Enum.Font.GothamBold,TextSize=10},kbNewBtn)
-HoverFx(kbNewBtn, C.accent)
-kbNewBtn.MouseButton1Click:Connect(function()
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    local t = Toggles[kbCurrent]
-    table.insert(t.Binds, { Key=nil, Mode="Toggle" })
-    kbBindIdx = #t.Binds
-    bindingFor = kbCurrent
-    KbRefresh(); UpdateBindLabel(kbCurrent)
+kbNewBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        if not kbCurrent or not Toggles[kbCurrent] then return end
+        local t = Toggles[kbCurrent]
+        table.insert(t.Binds, { Key=nil, Mode="Toggle" })
+        kbBindIdx = #t.Binds
+        bindingFor = kbCurrent
+        KbRefresh(); UpdateBindLabel(kbCurrent)
+    end
 end)
+HoverFx(kbNewBtn, C.accent)
 New("Frame",{Position=UDim2.new(0,0,0,46),Size=UDim2.new(1,0,0,1),
     BackgroundColor3=C.border,BorderSizePixel=0},kbLeft)
 -- Row 2: Hotkeys (y=47..93)
-local kbHotBtn = New("TextButton",{
+local kbHotBtn = New("Frame",{
     Position=UDim2.new(0,0,0,47),Size=UDim2.new(1,0,0,46),
-    Text="= Hotkeys",TextColor3=C.text,
-    BackgroundColor3=C.hdr,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbLeft)
+New("TextLabel",{
+    Text="= Hotkeys",TextColor3=C.text,BackgroundTransparency=1,
+    Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,
+    Size=UDim2.new(1,0,1,0),
+},kbHotBtn)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbHotBtn)
-HoverFx(kbHotBtn, C.hdr)
-kbHotBtn.MouseButton1Click:Connect(function()
-    print("[Derelict] active hotkeys:")
-    for _, t in pairs(Toggles) do
-        for _, b in ipairs(t.Binds) do
-            if b.Key then print("  "..t.Label.." -> "..b.Key.." ("..b.Mode..")") end
+kbHotBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        print("[Derelict] active hotkeys:")
+        for _, t in pairs(Toggles) do
+            for _, b in ipairs(t.Binds) do
+                if b.Key then print("  "..t.Label.." -> "..b.Key.." ("..b.Mode..")") end
+            end
         end
     end
 end)
+HoverFx(kbHotBtn, C.hdr)
 New("Frame",{Position=UDim2.new(0,0,0,93),Size=UDim2.new(1,0,0,1),
     BackgroundColor3=C.border,BorderSizePixel=0},kbLeft)
 -- Row 3: Reset (y=94..140)
-local kbResetBtn = New("TextButton",{
+local kbResetBtn = New("Frame",{
     Position=UDim2.new(0,0,0,94),Size=UDim2.new(1,0,0,46),
-    Text="o Reset",TextColor3=C.red,
-    BackgroundColor3=C.red,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=9,
-    TextXAlignment=Enum.TextXAlignment.Left,AutoButtonColor=false,Active=true,ZIndex=101},kbLeft)
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbLeft)
+New("TextLabel",{
+    Text="o Reset",TextColor3=C.red,BackgroundTransparency=1,
+    Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,
+    Size=UDim2.new(1,0,1,0),
+},kbResetBtn)
 New("UIPadding",{PaddingLeft=UDim.new(0,10)},kbResetBtn)
-HoverFx(kbResetBtn, C.red)
-kbResetBtn.MouseButton1Click:Connect(function()
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    local t = Toggles[kbCurrent]
-    if t.Binds[kbBindIdx] then
-        t.Binds[kbBindIdx].Key = nil
-        t.Binds[kbBindIdx].Mode = "Toggle"
+kbResetBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        if not kbCurrent or not Toggles[kbCurrent] then return end
+        local t = Toggles[kbCurrent]
+        if t.Binds[kbBindIdx] then
+            t.Binds[kbBindIdx].Key = nil
+            t.Binds[kbBindIdx].Mode = "Toggle"
+        end
+        if bindingFor==kbCurrent then bindingFor=nil end
+        KbRefresh(); UpdateAllBinds()
     end
-    if bindingFor==kbCurrent then bindingFor=nil end
-    KbRefresh(); UpdateAllBinds()
 end)
+HoverFx(kbResetBtn, C.red)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
 local kbRight = New("Frame",{Position=UDim2.new(0,120,0,0),Size=UDim2.new(1,-120,1,0),
@@ -860,18 +872,63 @@ local kbChipsLayout = New("UIListLayout",{
 New("Frame",{Position=UDim2.new(0,4,0,98),Size=UDim2.new(1,-8,0,1),
     BackgroundColor3=C.border,BorderSizePixel=0},kbRight)
 -- Footer (y=104): trash | eye | Hide | menu
-local kbDelBtn = New("TextButton",{Position=UDim2.new(0,4,0,104),Size=UDim2.new(0,22,0,22),
-    Text="X",TextColor3=C.red,BackgroundColor3=C.red,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-local kbHideEye = New("TextButton",{Position=UDim2.new(0,28,0,104),Size=UDim2.new(0,22,0,22),
-    Text="o",TextColor3=C.dim,BackgroundColor3=C.panel,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-local kbHideBtn = New("TextButton",{Position=UDim2.new(0,52,0,104),Size=UDim2.new(0,36,0,22),
-    Text="Hide",TextColor3=C.dim,BackgroundColor3=C.panel,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.Gotham,TextSize=8,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
-local kbMenuBtn = New("TextButton",{Position=UDim2.new(1,-26,0,104),Size=UDim2.new(0,22,0,22),
-    Text="=",TextColor3=C.dim,BackgroundColor3=C.panel,BackgroundTransparency=0.99,
-    BorderSizePixel=0,Font=Enum.Font.GothamBold,TextSize=11,AutoButtonColor=false,Active=true,ZIndex=101},kbRight)
+local kbDelBtn = New("Frame",{Position=UDim2.new(0,4,0,104),Size=UDim2.new(0,22,0,22),
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
+New("TextLabel",{Size=UDim2.new(1,0,1,0),Text="X",TextColor3=C.red,
+    BackgroundTransparency=1,Font=Enum.Font.GothamBold,TextSize=11},kbDelBtn)
+local kbHideEye = New("Frame",{Position=UDim2.new(0,28,0,104),Size=UDim2.new(0,22,0,22),
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
+New("TextLabel",{Size=UDim2.new(1,0,1,0),Text="o",TextColor3=C.dim,
+    BackgroundTransparency=1,Font=Enum.Font.GothamBold,TextSize=11},kbHideEye)
+local kbHideBtn = New("Frame",{Position=UDim2.new(0,52,0,104),Size=UDim2.new(0,36,0,22),
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
+New("TextLabel",{Size=UDim2.new(1,0,1,0),Text="Hide",TextColor3=C.dim,
+    BackgroundTransparency=1,Font=Enum.Font.Gotham,TextSize=8},kbHideBtn)
+local kbMenuBtn = New("Frame",{Position=UDim2.new(1,-26,0,104),Size=UDim2.new(0,22,0,22),
+    BackgroundTransparency=1,BorderSizePixel=0,Active=true,ZIndex=101},kbRight)
+New("TextLabel",{Size=UDim2.new(1,0,1,0),Text="=",TextColor3=C.dim,
+    BackgroundTransparency=1,Font=Enum.Font.GothamBold,TextSize=11},kbMenuBtn)
+
+-- Click handlers using InputBegan (more reliable than MouseButton1Click on Frames)
+kbDelBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        if not kbCurrent or not Toggles[kbCurrent] then return end
+        local t = Toggles[kbCurrent]
+        if #t.Binds > 0 then
+            table.remove(t.Binds, kbBindIdx)
+            kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
+        end
+        if bindingFor==kbCurrent then bindingFor=nil end
+        KbRefresh(); UpdateAllBinds()
+    end
+end)
+kbHideEye.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        local function kbDoHide()
+            if not kbCurrent then return end
+            local refs=CheckboxRefs[kbCurrent]
+            if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
+        end
+        kbDoHide()
+    end
+end)
+kbHideBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        local function kbDoHide()
+            if not kbCurrent then return end
+            local refs=CheckboxRefs[kbCurrent]
+            if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
+        end
+        kbDoHide()
+    end
+end)
+kbMenuBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        for _,t in pairs(Toggles) do t.Binds = {} end
+        bindingFor=nil; kbCurrent=nil; kbBindIdx=1
+        KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
+    end
+end)
 
 -- ── (state hoisted above ClosePopup) ──
 -- Sync right pane to current toggle + selected bind
@@ -963,31 +1020,6 @@ kbModeH.MouseButton1Click:Connect(function()
     local b = Toggles[kbCurrent].Binds[kbBindIdx]
     if not b or not b.Key then return end
     b.Mode="Hold"; UpdateAllBinds(); KbRefresh()
-end)
--- Trash icon: delete the SELECTED bind entry completely
-kbDelBtn.MouseButton1Click:Connect(function()
-    if not kbCurrent or not Toggles[kbCurrent] then return end
-    local t = Toggles[kbCurrent]
-    if #t.Binds > 0 then
-        table.remove(t.Binds, kbBindIdx)
-        kbBindIdx = math.max(1, math.min(kbBindIdx, #t.Binds))
-    end
-    if bindingFor==kbCurrent then bindingFor=nil end
-    KbRefresh(); UpdateAllBinds()
-end)
--- Hide: toggle visibility of the bindBtn on every checkbox row
-local function kbDoHide()
-    if not kbCurrent then return end
-    local refs=CheckboxRefs[kbCurrent]
-    if refs then for _,r in ipairs(refs) do if r.bindBtn then r.bindBtn.Visible=not r.bindBtn.Visible end end end
-end
-kbHideBtn.MouseButton1Click:Connect(kbDoHide)
-kbHideEye.MouseButton1Click:Connect(kbDoHide)
--- Menu (=): clear ALL binds across ALL toggles + close
-kbMenuBtn.MouseButton1Click:Connect(function()
-    for _,t in pairs(Toggles) do t.Binds = {} end
-    bindingFor=nil; kbCurrent=nil; kbBindIdx=1
-    KbRefresh(); UpdateAllBinds(); kbPanel.Visible=false
 end)
 
 -- Open popup: link to toggle, position at cursor
