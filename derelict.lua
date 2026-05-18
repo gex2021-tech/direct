@@ -12,6 +12,7 @@ if not game:IsLoaded() then game.Loaded:Wait() end
 local Players     = game:GetService("Players")
 local RunService  = game:GetService("RunService")
 local UserInput   = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui   = LocalPlayer:WaitForChild("PlayerGui")
 local Camera      = workspace.CurrentCamera
@@ -22,8 +23,118 @@ for _, pg in ipairs({PlayerGui, pcall(function() return game:GetService("CoreGui
     if prev then prev:Destroy() end
 end
 
+-- ───────────────────────────────────────────────────────────
+-- DERELICT GLOBAL TABLE
+-- ───────────────────────────────────────────────────────────
+Derelict = {
+    Version = "2.0.1-Fixed",
+    Theme = {
+        MainColor  = Color3.fromRGB(25, 25, 35),
+        AccentColor = Color3.fromRGB(0, 170, 255),
+        TextColor  = Color3.fromRGB(255, 255, 255),
+    },
+    ActiveConnections = {},
+    Notifications = {},
+}
+
+function Derelict:Connect(conn)
+    table.insert(self.ActiveConnections, conn)
+    return conn
+end
+
+function Derelict:DisconnectAll()
+    for _, conn in ipairs(self.ActiveConnections) do
+        if typeof(conn) == "RBXScriptConnection" then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    self.ActiveConnections = {}
+end
+
+-- ───────────────────────────────────────────────────────────
+-- NOTIFY SYSTEM (Toast Notifications)
+-- ───────────────────────────────────────────────────────────
+local NotifyContainer = nil
+local function Notify(title, msg, nType)
+    if not NotifyContainer then
+        NotifyContainer = New("Frame", {
+            Position = UDim2.new(1, -10, 1, -10),
+            Size = UDim2.new(0, 280, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+        }, SGui)
+        New("UIListLayout", {
+            FillDirection = Enum.FillDirection.Vertical,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
+            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+            Padding = UDim.new(0, 4),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+        }, NotifyContainer)
+    end
+
+    local color = C.accent
+    if nType == "Success" then color = C.green
+    elseif nType == "Error" then color = C.red
+    elseif nType == "Warning" then color = C.orange end
+
+    local toast = New("Frame", {
+        Size = UDim2.new(0, 280, 0, 50),
+        BackgroundColor3 = C.panel,
+        BorderSizePixel = 0,
+        LayoutOrder = #NotifyContainer:GetChildren(),
+    }, NotifyContainer)
+    Corner(toast, 4)
+    Stroke(toast, color, 1)
+
+    New("TextLabel", {
+        Position = UDim2.new(0, 8, 0, 4),
+        Size = UDim2.new(1, -16, 0, 14),
+        Text = title,
+        TextColor3 = color,
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.GothamBold,
+        TextSize = 10,
+    }, toast)
+
+    New("TextLabel", {
+        Position = UDim2.new(0, 8, 0, 18),
+        Size = UDim2.new(1, -16, 0, 28),
+        Text = msg or "",
+        TextColor3 = C.text,
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        Font = Enum.Font.Gotham,
+        TextSize = 9,
+    }, toast)
+
+    table.insert(Derelict.Notifications, toast)
+
+    -- Animate in
+    toast.Position = UDim2.new(1, 10, 1, -10)
+    pcall(function()
+        TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -290, 0, 0),
+        }):Play()
+    end)
+
+    -- Auto-dismiss after 4s
+    spawn(function()
+        wait(4)
+        pcall(function()
+            TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Position = UDim2.new(1, 10, 0, 0),
+            }):Play()
+        end)
+        wait(0.3)
+        toast:Destroy()
+    end)
+end
+
 local Connections = {}
-local function track(c) table.insert(Connections, c); return c end
+local function track(c) table.insert(Connections, c); Derelict:Connect(c); return c end
 
 -- ───────────────────────────────────────────────────────────
 -- HELPERS
@@ -145,7 +256,14 @@ do  -- Move to CoreGui so the ScreenGui renders above the Drawing API layer
     pcall(function() syn.protect_gui(SGui) end)
     pcall(function() protect_gui(SGui) end)
     local ok = pcall(function() SGui.Parent = game:GetService("CoreGui") end)
-    if not ok then SGui.Parent = PlayerGui end
+    if not ok then
+        local hui = pcall(gethui) and gethui()
+        if hui then
+            SGui.Parent = hui
+        else
+            SGui.Parent = PlayerGui
+        end
+    end
 end
 
 local Main = New("Frame", {
@@ -247,16 +365,17 @@ local function UpdateBindLabel(name)
     local refs = CheckboxRefs[name]; if not refs then return end
     local t = Toggles[name]
     for _, r in ipairs(refs) do
-        if not r.bindBtn then continue end
-        if bindingFor == name then
-            r.bindBtn.Text = "..."; r.bindBtn.TextColor3 = C.orange
-        elseif #t.Binds > 0 and t.Binds[1].Key then
-            local b = t.Binds[1]
-            local extra = (#t.Binds > 1) and ("+"..(#t.Binds-1)) or ""
-            r.bindBtn.Text = "["..b.Key:sub(1,4)..":"..(b.Mode=="Hold" and "H" or "T")..extra.."]"
-            r.bindBtn.TextColor3 = b.Mode=="Hold" and C.orange or C.accent
-        else
-            r.bindBtn.Text = "[+]"; r.bindBtn.TextColor3 = C.dim
+        if r.bindBtn then
+            if bindingFor == name then
+                r.bindBtn.Text = "..."; r.bindBtn.TextColor3 = C.orange
+            elseif #t.Binds > 0 and t.Binds[1].Key then
+                local b = t.Binds[1]
+                local extra = (#t.Binds > 1) and ("+"..(#t.Binds-1)) or ""
+                r.bindBtn.Text = "["..b.Key:sub(1,4)..":"..(b.Mode=="Hold" and "H" or "T")..extra.."]"
+                r.bindBtn.TextColor3 = b.Mode=="Hold" and C.orange or C.accent
+            else
+                r.bindBtn.Text = "[+]"; r.bindBtn.TextColor3 = C.dim
+            end
         end
     end
 end
@@ -985,6 +1104,8 @@ local pMiscCfg = Panel(pMisc, 4, 4, 252, 540, "Configurations")
 local pmsc = PanelContent(pMiscCfg)
 Section(pmsc, 4, "UI")
 SmallBtn(pmsc, 8, 22, 80, 18, "Unload", function()
+    Notify("Derelict", "Unloading...", "Warning")
+    Derelict:DisconnectAll()
     SGui:Destroy()
 end)
 New("TextLabel", {
@@ -1054,9 +1175,13 @@ track(UserInput.InputBegan:Connect(function(input, processed)
         Main.Visible = not Main.Visible
         return 
     end
+
+    -- 3) block inputs when chat/textbox is focused
+    if UserInput:GetFocusedObject() then return end
+
     if processed then return end
 
-    -- 3) bound toggles (multi-bind: iterate every bind entry)
+    -- 4) bound toggles (multi-bind: iterate every bind entry)
     for _, t in pairs(Toggles) do
         for _, b in ipairs(t.Binds) do
             if b.Key == key then
@@ -1307,12 +1432,12 @@ local function checkESP(obj)
 end
 
 -- Escaneo Pasivo Optimizado
-task.spawn(function()
+spawn(function()
     for _, obj in ipairs(workspace:GetDescendants()) do checkESP(obj) end
 end)
 track(workspace.DescendantAdded:Connect(checkESP))
 
-task.spawn(function()
+spawn(function()
     while SGui.Parent do
         for tgt, e in pairs(espObjects) do
             if not tgt or not tgt.Parent then destroyESP(e); espObjects[tgt] = nil end
@@ -1325,7 +1450,7 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(2)
+        wait(2)
     end
 end)
 
@@ -1342,12 +1467,34 @@ local function getHum() local c = LocalPlayer.Character; return c and c:FindFirs
 local function getRoot() local c = LocalPlayer.Character; return c and c:FindFirstChild("HumanoidRootPart") end
 
 -- Infinite Jump
-track(UserInput.JumpRequest:Connect(function()
-    if Toggles.Infinite_Jump.Value then
-        local h = getHum()
-        if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+local jumpConn = nil
+local function EnableJump()
+    if not jumpConn then
+        jumpConn = UserInput.JumpRequest:Connect(function()
+            if Toggles.Infinite_Jump.Value then
+                local h = getHum()
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end
+        end)
+        track(jumpConn)
     end
-end))
+end
+local function DisableJump()
+    if jumpConn then
+        jumpConn:Disconnect()
+        jumpConn = nil
+    end
+end
+EnableJump() -- Start with connection active (lightweight)
+Toggles.Infinite_Jump:OnChanged(function(v)
+    if v then
+        EnableJump()
+        Notify("Infinite Jump", "Enabled", "Success")
+    else
+        DisableJump()
+        Notify("Infinite Jump", "Disabled", "Info")
+    end
+end)
 
 -- Fly
 local flyBV, flyBG, flyConn
@@ -1376,7 +1523,15 @@ local function StartFly()
         flyBV.Velocity = move.Magnitude > 0 and move.Unit*Options.Fly_Speed.Value or Vector3.zero
     end)
 end
-Toggles.Fly_Mode:OnChanged(function(v) if v then StartFly() else StopFly() end end)
+Toggles.Fly_Mode:OnChanged(function(v)
+    if v then
+        StartFly()
+        Notify("Fly Mode", "Enabled - Speed: "..Options.Fly_Speed.Value, "Success")
+    else
+        StopFly()
+        Notify("Fly Mode", "Disabled", "Info")
+    end
+end)
 
 -- ═══════════════════════════════════════════════════════════
 -- REAL ACTIVITY EVENTS
@@ -1388,11 +1543,11 @@ for _, p in ipairs(Players:GetPlayers()) do
 end
 track(Players.PlayerAdded:Connect(function(p)
     AddActivity("  Player "..p.Name.."  has Joined.", C.green)
-    task.wait(0.1); UpdatePlayerList()
+    wait(0.1); UpdatePlayerList()
 end))
 track(Players.PlayerRemoving:Connect(function(p)
     AddActivity("  Player "..p.Name.."  has Left.", C.red)
-    task.wait(0.1); UpdatePlayerList()
+    wait(0.1); UpdatePlayerList()
 end))
 
 -- ═══════════════════════════════════════════════════════════
@@ -1404,6 +1559,7 @@ RefreshKeybindList()
 do  -- physics helpers + UI refresh
     local _t = 0
     -- NoClip part cache: rebuilt on character respawn, kept in sync via DescendantAdded
+    local noclipConn = nil
     local noclipParts, noclipChar, noclipChildConn = {}, nil, nil
     local function rebuildNoclipCache()
         noclipParts = {}
@@ -1422,14 +1578,27 @@ do  -- physics helpers + UI refresh
     track(LocalPlayer.CharacterAdded:Connect(rebuildNoclipCache))
     if LocalPlayer.Character then rebuildNoclipCache() end
 
-    track(RunService.Stepped:Connect(function()
-        if not Toggles.No_Clip.Value then return end
-        if LocalPlayer.Character ~= noclipChar then rebuildNoclipCache() end
-        for i = 1, #noclipParts do
-            local p = noclipParts[i]
-            if p.CanCollide then p.CanCollide = false end
+    Toggles.No_Clip:OnChanged(function(v)
+        if v then
+            if not noclipConn then
+                noclipConn = RunService.Stepped:Connect(function()
+                    if LocalPlayer.Character ~= noclipChar then rebuildNoclipCache() end
+                    for i = 1, #noclipParts do
+                        local p = noclipParts[i]
+                        if p.CanCollide then p.CanCollide = false end
+                    end
+                end)
+                track(noclipConn)
+            end
+            Notify("No Clip", "Enabled - Collision disabled", "Success")
+        else
+            if noclipConn then
+                noclipConn:Disconnect()
+                noclipConn = nil
+            end
+            Notify("No Clip", "Disabled - Collision restored", "Info")
         end
-    end))
+    end)
 
     track(RunService.Heartbeat:Connect(function(dt)
         -- Player list refresh (throttled to 2s)
@@ -1441,8 +1610,9 @@ end
 -- Cleanup on GUI destroy
 SGui.AncestryChanged:Connect(function()
     if not SGui.Parent then
+        Derelict:DisconnectAll()
         for _, c in ipairs(Connections) do
-            if typeof(c) == "RBXScriptConnection" then c:Disconnect() end
+            if typeof(c) == "RBXScriptConnection" then pcall(function() c:Disconnect() end) end
         end
         for _, e in pairs(espObjects) do destroyESP(e) end
         espObjects = {}
@@ -1463,9 +1633,9 @@ end
 for _, d in ipairs(SGui:GetDescendants()) do applyTypography(d) end
 -- Auto-apply to dynamic rows (player list, activity, keybind list entries, etc.)
 track(SGui.DescendantAdded:Connect(function(d)
-    task.defer(function()
+    spawn(function()
         if d.Parent then applyTypography(d) end
     end)
 end))
 
-print("[Derelict] loaded — right-click [+] on any row to open the keybind popup.")
+print("[Derelict v"..Derelict.Version.."] loaded — right-click [+] on any row to open the keybind popup.")
