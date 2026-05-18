@@ -822,6 +822,9 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
+    -- Force immediate visual update
+    kbKeyBtn.Text = "-"
+    kbKeyBtn.TextColor3 = C.dim
     KbRefresh(); UpdateAllBinds()
 end)
 
