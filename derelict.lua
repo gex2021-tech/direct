@@ -726,11 +726,20 @@ local function ClosePopup()
     end
     kbPanel.Visible = false
 end
+local _popupIgnoreNextClose = false
+local kbInner = New("Frame", {
+    Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, BorderSizePixel=0, Active=true,
+}, kbPanel)
+kbInner.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        _popupIgnoreNextClose = true
+    end
+end)
 track(UserInput.InputBegan:Connect(function(i)
     if i.UserInputType==Enum.UserInputType.MouseButton1 and kbPanel.Visible then
-        -- Check if click is inside the popup or its children
-        if i.GuiObject and (i.GuiObject == kbPanel or i.GuiObject:IsDescendantOf(kbPanel)) then
-            return -- Click inside popup, do nothing
+        if _popupIgnoreNextClose then
+            _popupIgnoreNextClose = false
+            return
         end
         local mp = UserInput:GetMouseLocation()
         local pp, ps = kbPanel.AbsolutePosition, kbPanel.AbsoluteSize
@@ -739,9 +748,6 @@ track(UserInput.InputBegan:Connect(function(i)
         end
     end
 end))
-local kbInner = New("Frame", {
-    Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, BorderSizePixel=0,
-}, kbPanel)
 
 -- Vertical divider at x=118
 New("Frame",{Position=UDim2.new(0,118,0,0),Size=UDim2.new(0,1,1,0),
