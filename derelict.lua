@@ -827,14 +827,8 @@ kbResetBtn.MouseButton1Click:Connect(function()
         t.Binds[kbBindIdx].Mode = "Toggle"
     end
     if bindingFor==kbCurrent then bindingFor=nil end
-    -- Immediate UI update
-    kbKeyBtn.Text = "-"
-    kbKeyBtn.TextColor3 = C.dim
-    kbModeT.BackgroundColor3 = C.accent; kbModeT.TextColor3 = C.text; kbModeTStroke.Color = C.accent
-    kbModeH.BackgroundColor3 = C.bg; kbModeH.TextColor3 = C.dim; kbModeHStroke.Color = C.border
-    UpdateBindLabel(kbCurrent)
-    -- Rebuild chips to reflect cleared key
-    if KbRebuildChips then KbRebuildChips() end
+    -- Call KbRefresh to update all UI elements
+    KbRefresh()
 end)
 
 -- ── RIGHT pane: Key / Mode / Bind chips / Footer ──
